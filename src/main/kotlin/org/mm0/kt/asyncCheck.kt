@@ -47,7 +47,6 @@ fun ContextBuilder.asyncCheck(mm0s: Sequence<MM0>, mmus: Sequence<MMU>, checker:
             is MMUDefinition -> if (mmu.definition.isLocal) register(mmu.definition) else registerUntil(it0) { mm0 -> if (current().isMatch(mmu.definition, mm0)) register(mmu.definition) else error("definition ${mmu.report()} cannot be matched to ${mm0.report()}") }
             is MMUAxiom -> registerUntil(it0) { mm0 -> if (isMatch(mmu.axiom, mm0)) register(mmu.axiom) else error("axiom ${mmu.report()} cannot be matched to ${mm0.report()}") }
             is MMUTheorem -> {
-                println(mmu.report())
                 checker(current(), mmu.theorem, mmu.binders, mmu.proof)
                 if (!mmu.theorem.isLocal) registerUntil(it0) { mm0 -> if (!isMatch(mmu.theorem, mm0)) error("theorem ${mmu.report()} cannot be matched to ${mm0.report()}") }
                 register(mmu.theorem)
@@ -156,7 +155,7 @@ private fun ContextBuilder.isMatch(ax: Assertion, mm0: MM0): Boolean {
             is FormulaTypeBinder.Type -> binders.addAll(it.names.map { s -> Binder(it.isBound, s, it.type) })
         }
     }
-    return ax.binders.isValidMatch(binders).apply{println("binders=$this")} && ax.hypotheses.hypothesesMatch(hypotheses).apply{println("hypotheses=$this")}
+    return ax.binders.isValidMatch(binders) && ax.hypotheses.hypothesesMatch(hypotheses)
 }
 
 private fun List<NamedHypothesis>.hypothesesMatch(hypotheses: List<NamedHypothesis>): Boolean = foldRightIndexed(true) {index, nh, acc -> acc && hypotheses[index].formula == nh.formula}

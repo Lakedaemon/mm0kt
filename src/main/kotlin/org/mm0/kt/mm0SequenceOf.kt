@@ -42,7 +42,7 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
                 skipIf(FREE) -> sort(4)
                 skipIf(SORT) -> sort(5)
                 skipIf(COERCION) -> MM0Coercion(Coercion(id = canonicId().then(':'), coerced = canonicId().then('>'), coercedInto = canonicId()))
-                skipIf(DELIMITER) -> MM0Delimiters(Delimiters(formula().split(' ').distinct().filterNot{it.isEmpty()}))
+                skipIf(DELIMITER) -> MM0Delimiters(delimiters())
                 skipIf(INPUT) -> inout(true)
                 skipIf(OUTPUT) -> inout(false)
                 else -> parserError("this should not happen")
@@ -51,6 +51,8 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
             return mm0
         }
     }
+
+
 
     private fun idsBefore(charA: Char, charB: Char) = deps.apply {
         clear()
@@ -116,6 +118,12 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
 
 
     /** mm0 */
+    private fun delimiters():Delimiters {
+        val string = formula()
+        if (look() != '$') return Delimiters(listOf(), string.split(' ').distinct().filterNot{it.isEmpty()}, listOf())
+        return Delimiters(string.split(' ').distinct().filterNot{it.isEmpty()}, listOf(), formula().split(' ').distinct().filterNot{it.isEmpty()})
+    }
+
     private fun sort(readToken: Int): MM0Sort {
         /** gobble options and sort */
         val isPure = readToken == 1

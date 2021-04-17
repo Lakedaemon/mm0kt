@@ -1,17 +1,19 @@
 package org.mm0.kt
 
-import kotlin.streams.toList
-
 /** Check that a constant is not replaced later by another for the DynamicParser
 Check that an id is not replaced later by another */
 
-class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=null, private var comp: STree<M.Computer>?=null, private var human: STree<M.Human>?=null, private var coercions: STree<STree<List<M.Human.Coercion>>>?=null, private var delimiters: STrie = STrie(true, null, " ", null), override val canonizer: Canonizer = Canonizer()) : ContextBuilder {
+class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=null, private var comp: STree<M.Computer>?=null, private var human: STree<M.Human>?=null, private var coercions: STree<STree<List<M.Human.Coercion>>>?=null, private var delimiters: STree<Delimiter>?=null, override val canonizer: Canonizer = Canonizer()) : ContextBuilder {
     private val contexts = mutableListOf<ContextImpl>()
     override fun current(): Context = contexts.lastOrNull() ?: error("no context built yet")
 
     override fun register(m: M) {
         when (m) {
-            is M.Human.Delimiters -> for (delimiter in m.list) delimiters = delimiters.insert(delimiter)
+            is M.Human.Delimiters -> {
+                for (delimiter in m.left) delimiters = delimiters.put(delimiter, Delimiter.Left(delimiter))
+                for (delimiter in m.both) delimiters = delimiters.put(delimiter, Delimiter.Both(delimiter))
+                for (delimiter in m.right) delimiters = delimiters.put(delimiter, Delimiter.Right(delimiter))
+            }
             is M.Human.Operator -> m.addIfFirst(m.constant)
             is M.Human.Notation -> m.addIfFirst(m.constant)
             is M.Human.Coercion -> {

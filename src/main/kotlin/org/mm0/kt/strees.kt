@@ -14,7 +14,22 @@ fun <V> STree<V>?.forEach(action:(String, V)->Unit) :Unit = if (this == null) Un
 }
 
 
+fun STree<Delimiter>?.keyStarting(keyToFind: CharSequence, position: Int): Delimiter? = if (this == null) null else when {
+    compareKeyStarting(keyToFind, position, key) < 0 -> left.keyStarting(keyToFind, position)
+    compareKeyStarting(keyToFind, position, key) > 0 -> right.keyStarting(keyToFind, position)
+    else -> value
+}
 
+/** returns 0 if key is equal to a.substring(position, position+key.length)
+ * even if there is stuff after in the charSequence */
+private fun compareKeyStarting(a: CharSequence, position: Int, key: String): Int {
+    val min = (a.length - position).coerceAtMost(key.length)
+    for (k in 0 until min) {
+        val comp = a[position + k].compareTo(key[k])
+        if (comp != 0) return comp
+    }
+    return if (a.length - position >= key.length) 0 else -1
+}
 
 
 fun <V> STree<V>?.put(key: String, value: V): STree<V> = this?.insert(key, value) ?: STree(true, null, key, value, null)

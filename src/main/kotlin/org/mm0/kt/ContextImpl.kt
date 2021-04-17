@@ -1,6 +1,6 @@
 package org.mm0.kt
 
-class ContextImpl(private val assertions: STree<M.Computer.Assertion>?, private val comp: STree<M.Computer>?, private val human: STree<M.Human>?, override val delimiters: STrie, private val directCoercions: STree<STree<List<M.Human.Coercion>>>?) : Context {
+class ContextImpl(private val assertions: STree<M.Computer.Assertion>?, private val comp: STree<M.Computer>?, private val human: STree<M.Human>?, override val delimiters: STree<Delimiter>?, private val directCoercions: STree<STree<List<M.Human.Coercion>>>?) : Context {
     override fun operator(constant: CharSequence): M.Human.Operator? = human.find(constant) as? M.Human.Operator
     override fun notation(constant: CharSequence): M.Human.Notation? = human.find(constant) as? M.Human.Notation
     override fun directCoercion(actual: CharSequence, expected: CharSequence): List<M.Human.Coercion>? = directCoercions.find(actual).find(expected)

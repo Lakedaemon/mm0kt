@@ -225,7 +225,7 @@ class DynamicParser(private val context: Context, val canonizer: Canonizer = sim
 }
 
 /** string is a mm0 MathString*/
-fun tokens(charSequence: CharSequence, delimiters: STrie, toTokenString: (CharSequence, Int, Int) -> String): Sequence<String> = sequence {
+fun tokens(charSequence: CharSequence, delimiters: STree<Delimiter>?, toTokenString: (CharSequence, Int, Int) -> String): Sequence<String> = sequence {
     val size = charSequence.length
     var position = 0
     var tokenStart = -1
@@ -247,10 +247,24 @@ fun tokens(charSequence: CharSequence, delimiters: STrie, toTokenString: (CharSe
         val delim = delimiters.keyStarting(charSequence, position)
         if (delim != null) {
             // we found a delimiter
-            if (tokenStart >= 0) yield(toTokenString(charSequence, tokenStart, position))
-            yield(delim)
-            position += delim.length
-            tokenStart = -1
+            when (delim) {
+                is Delimiter.Left -> {
+                    position += delim.key.length
+                    if (tokenStart >= 0) yield(toTokenString(charSequence, tokenStart, position)) else yield(delim.key)
+                    tokenStart = -1
+                }
+                is Delimiter.Both -> {
+                    if (tokenStart >= 0) yield(toTokenString(charSequence, tokenStart, position))
+                    yield(delim.key)
+                    position += delim.key.length
+                    tokenStart = -1
+                }
+                is Delimiter.Right -> {
+                    if (tokenStart >= 0) yield(toTokenString(charSequence, tokenStart, position))
+                    tokenStart = position
+                    position += delim.key.length
+                }
+            }
             continue
         }
 
