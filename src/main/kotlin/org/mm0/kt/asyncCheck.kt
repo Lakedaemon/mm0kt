@@ -21,7 +21,7 @@ val simpleCanonizer = Canonizer()
  * So, it would be nice to check them in coroutines, for an immutable Math context
  * That way, we could proof check them in parallel, on different machines,
  * and get a report for each proof (passes or not, set of depending theorems)
- * that we would agregate later/lazuly/reactively...
+ * that we would agregate later/lazily/reactively...
  *
  *
  * */
@@ -38,7 +38,7 @@ fun simpleCheck(context: Context, theorem: Assertion.Theorem, binders: List<Bind
 fun ContextBuilder.asyncCheck(mm0s: Sequence<MM0>, mmus: Sequence<MMU>, checker: (Context, Assertion.Theorem, List<Binder>, CharSequence) -> Unit) {
     val it0 = mm0s.iterator()
     for (mmu in mmus) {
-        println("$mmu")
+        //println("$mmu")
         when (mmu) {
             is MMUSort -> registerUntil(it0) { mm0 -> if (isMatch(mmu.sort, mm0)) register(mmu.sort) else error("sort ${mmu.report()} cannot be matched to ${mm0.report()}") }
             is MMUTerm -> registerUntil(it0) { mm0 -> if (isMatch(mmu.term, mm0)) register(mmu.term) else error("term ${mmu.report()} cannot be matched to ${mm0.report()}") }
@@ -63,7 +63,7 @@ fun ContextBuilder.asyncCheck(mm0s: Sequence<MM0>, mmus: Sequence<MMU>, checker:
 private fun ContextBuilder.registerUntil(it0: Iterator<MM0>, check: ContextBuilder.(mm0: MM0) -> Unit) {
     while (it0.hasNext()) {
         val mm0 = it0.next()
-        println(mm0.toString())
+        //println(mm0.toString())
         when (mm0) {
             is MM0Delimiters -> register(mm0.delimiters)
             is MM0Coercion -> register(mm0.coercion)
@@ -89,15 +89,7 @@ private fun isMatch(term: Term, mm0: MM0): Boolean {
     if (term.type != arrows.lastOrNull()) return false
     /** there may be binders */
     if (arrows.size == 1) return mm0.humanBinders.isHumanValidMatch(term.binders)
-    /** there are arrows (with more that the ending type)
-     * then we only support no humanBinders
-     *
-     * theoretically speaking,
-     * we could support human binders and arrows binders with the same amount count that term.binders
-     * but we do not, for now
-     *
-     **/
-
+    /** there are arrows (with more that the ending type)**/
     if (mm0.humanBinders.isNotEmpty() || term.binders.size != arrows.size - 1) return false
     return (0 until arrows.size - 1).all { arrows[it] == term.binders[it].type }
 }
@@ -108,10 +100,9 @@ private fun Context.isMatch(def: Definition, mm0: MM0): Boolean {
     if (def.type != mm0.type) return false
     if (mm0.humanBinders.asSequence().flatMap{ hb-> hb.names.mapNotNull { if (it.startsWith('.')) Binder(true, it.substring(1), hb.type) else null  } }.toList() != def.moreDummiesForDef) return false.apply{println("6667")}
     if (!mm0.humanBinders.isHumanValidMatch(def.binders)) return false
-    val formula = mm0.formula//?.trim()
+    val formula = mm0.formula
     if (formula != null) {
         val parser = DynamicParser(this)
-        //val types = mm0.humanBinders.asSequence().flatMap{hb-> hb.names.map{s->Binder(hb.isBound, s, hb.type)}}.associate{Pair(it.name as CharSequence, it.type)}
         val types = (def.binders + def.moreDummiesForDef) .associate { Pair(it.name as CharSequence, it.type) }
         val tree = parser.parse(formula, types)
         if (tree != def.tree) error("different formula : \ncharSequence=$formula\nmm0=$tree\nmmu=${def.tree}\ncontext=$this")
@@ -138,7 +129,7 @@ private fun ContextBuilder.isMatch(ax: Assertion, mm0: MM0): Boolean {
     for (arrow in arrows.dropLast(1)) when (arrow) {
         is FormulaOrType.Formula -> hypotheses.add(NamedHypothesis(underscoreCS, dynamicParser.parse(arrow.formula, types)))
         is FormulaOrType.Type -> {
-            println("geh" + mm0.report())
+            println("meh" + mm0.report())
             TODO()
         }
     }

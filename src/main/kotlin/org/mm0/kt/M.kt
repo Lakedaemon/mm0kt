@@ -2,11 +2,17 @@ package org.mm0.kt
 
 sealed class M {
     sealed class Human : M() {
-        data class Delimiters(val left:List<String>, val both: List<String>, val right:List<String>):Human()
+        data class Delimiters(val left: List<String>, val both: List<String>, val right: List<String>) : Human()
         data class Coercion(val id: String, val coerced: String, val coercedInto: String) : Human()
 
         /** notational constructs */
-        data class Notation(val id: String, val humanBinders: List<HumanBinder>, val type: Type, val constant: String, val precedence: Int, val notationLiterals: List<NotationLiteral>) : Human()
+        data class Notation(val id: String, val humanBinders: List<HumanBinder>, val type: Type, val constant: String, val precedence: Int, val notationLiterals: List<NotationLiteral>) : Human() {
+            val binders = humanBinders.flatMap { it.names.map { s -> Binder(it.isBound, s, it.type) } }
+            val binderPrecedences: List<Int> = mutableListOf<Int>().apply {
+                val size = notationLiterals.size
+                notationLiterals.forEachIndexed { index, notationLiteral -> if (notationLiteral is NotationLiteral.ID) add(if (index == size - 1) precedence else notationLiterals[index + 1].let { if (it is NotationLiteral.Constant) it.precedence + 1 else Int.MAX_VALUE }) }
+            }
+        }
 
         /** multi-ary (prefix) and binary (infixl & infixr) operators */
         data class Operator(val id: String, val constant: String, val precedence: Int, val operatorType: String) : Human()

@@ -47,20 +47,17 @@ class DynamicParser(private val context: Context, val canonizer: Canonizer = sim
      * */
 
     private fun parseExpression(tokens: TokenProvider, alreadyParsed: StringTree, minPrecedence: Int, variables: Map<CharSequence, Type>): StringTree {
-        //  debug("parseExpression($tokens, ${alreadyParsed.prettyPrint()}, $minPrecedence, $variables)")
         var leftTree = alreadyParsed
         while (tokens.hasToken && isBinaryOperatorWithPrecedenceGreaterThan(tokens, minPrecedence)) {
             val token = context.operator(tokens.current) ?: error("a binary operator should be in mm0Tokens : ${tokens.current}")
             val opToken = tokens.token
-            val opPrecedence = token.precedence//op.operatorPrecedence(variables)
+            val opPrecedence = token.precedence
             tokens.moveRight(1)
             var rightTree = tokens.parseSingle(variables)
             while (tokens.hasToken && isBinaryOperatorInfixRightWithSamePrecedenceOrIsBinaryOperatorWithGreaterPrecedenceThan(tokens, opPrecedence)) {
-                rightTree = parseExpression(tokens, rightTree, context.operator(tokens.current)?.precedence ?: throw Exception("shouldn't happened"), variables)
+                rightTree = parseExpression(tokens, rightTree, context.operator(tokens.current)?.precedence ?: error("shouldn't happened"), variables)
             }
             leftTree = variables.opResultTree(leftTree, token.id, opToken, rightTree)
-            //variables.checkOperatorType(leftTree.id, token.id.string, rightTree.id)
-            //leftTree = MM0Tree(token.id.string, listOf(leftTree, rightTree))
         }
         return leftTree
     }
@@ -75,75 +72,58 @@ class DynamicParser(private val context: Context, val canonizer: Canonizer = sim
 
     /** parse one Tree out of tokens and updates position to the next token */
     private fun TokenProvider.parseSingle(variables: Map<CharSequence, Type>): StringTree {
-        // debug("$this.parseSingle($variables)")
         if (!hasToken) throw Exception("no token, this shouldn't happen")
         if (current in variables) {
             val result = StringTree(canonizer.toImmutable(token), listOf())
             moveRight(1)
             return result
         }
-
-        // to do improve prefixOperator shouldn't be called for delimiters
-        val currentToken = token
-        val prefixOperator = current.prefixOperator()
-        val notation = context.notation(current)
-        return when {
-            current == "(" -> {
-                var pos = position + 1
-                var depth = 1
-                while (depth > 0 && pos < list.size) when (list[pos++]) {
-                    "(" -> ++depth
-                    ")" -> --depth
-                }
-                if (depth > 0) throw Exception("unbalanced parentheses in $this")
-                val tokens2 = TokenProvider(list.subList(position + 1, pos - 1))
-                val result = parseExpression(tokens2, tokens2.parseSingle(variables), 0, variables)
-                moveRight(pos - position)
-                result
+        if (current == "(") {
+            var pos = position + 1
+            var depth = 1
+            while (depth > 0 && pos < list.size) when (list[pos++]) {
+                "(" -> ++depth
+                ")" -> --depth
             }
-            prefixOperator != null -> {
-                moveRight(1)
-                //debug("prefixOperator=$prefixOperator")
-                val children: List<StringTree> = (1..prefixOperator.typedList.size).map {
-                    val child = parseExpression(this, parseSingle(variables), prefixOperator.precedenceLevel, variables)
-
-                    /** check types */
-                    val coercions = checkTypes(child.id.type(variables).sort, prefixOperator.typedList[it - 1].sort) ?: error("$it for prefix ${prefixOperator.id} expected type ${prefixOperator.typedList[it - 1]} was actual ${child.id.type(variables)} for\n${child/*.prettyPrint()*/}\nprefixOperator.typedList = ${prefixOperator.typedList}\ntypeList[${it - 1}]=${prefixOperator.typedList[it - 1]}\n$prefixOperator")
-                    coercions.foldRight(child) { coercion, tree -> StringTree(coercion.id, listOf(tree)) }
-                }
-                StringTree(prefixOperator.id, children)
-            }
-            notation != null -> {
-                val newToken = notation.id
-                moveRight(1)
-                var prec = notation.precedence
-                val types = notation.humanBinders.flatMap { it.names.map { s -> Binder(it.isBound, s, it.type) } }//  .typeBinders.map { it.type }
-                var idCount = 0
-                StringTree(newToken, notation.notationLiterals.mapNotNull {
-                    when (it) {
-                        is NotationLiteral.ID -> {
-                            val child = parseExpression(this, parseSingle(variables), prec, variables)
-                            val coercions = checkTypes(child.id.type(variables).sort, types[idCount].type.sort /* .type    .first()*/) ?: throw Exception("actual type for term $idCount of notation ${notation.id} is ${child.id.type(variables).sort} but was expected to be ${types[idCount].type.sort}")
-                            //if (!checkTypes(child.id.type(variables).first(), types[idCount].type.first())) throw Exception("actual type for term $idCount of notation ${notation.id} is ${child.id.type(variables).first()} but was expected to be ${types[idCount].type.first()}")
-                            idCount++
-                            coercions.foldRight(child) { coercion, tree -> StringTree(coercion.id, listOf(tree)) }
-                        }
-                        is NotationLiteral.Constant -> {
-                            if (!current.charsEquals(it.constant)) throw Exception("we should have $current == ${it.constant}")
-                            prec = it.precedence
-                            moveRight(1)
-                            null
-                        }
-                    }
-                })
-            }
-            // TODO shouldn't happen
-            else -> {
-                val result = StringTree(canonizer.toImmutable(token), listOf())
-                moveRight(1)
-                result
-            }
+            if (depth > 0) throw Exception("unbalanced parentheses in $this")
+            val tokens2 = TokenProvider(list.subList(position + 1, pos - 1))
+            val result = parseExpression(tokens2, tokens2.parseSingle(variables), 0, variables)
+            moveRight(pos - position)
+            return result
         }
+        val prefixOperator = current.prefixOperator()
+        if (prefixOperator != null) {
+            moveRight(1)
+            return StringTree(prefixOperator.id, (1..prefixOperator.typedList.size).map {
+                val child = parseExpression(this, parseSingle(variables), prefixOperator.precedenceLevel, variables)
+
+                /** check types */
+                val coercions = checkTypes(child.id.type(variables).sort, prefixOperator.typedList[it - 1].sort) ?: error("$it for prefix ${prefixOperator.id} expected type ${prefixOperator.typedList[it - 1]} was actual ${child.id.type(variables)} for\n${child/*.prettyPrint()*/}\nprefixOperator.typedList = ${prefixOperator.typedList}\ntypeList[${it - 1}]=${prefixOperator.typedList[it - 1]}\n$prefixOperator")
+                coercions.foldRight(child) { coercion, tree -> StringTree(coercion.id, listOf(tree)) }
+            })
+        }
+        val notation = context.notation(current)
+        if (notation != null) {
+            moveRight(1)
+            val newToken = notation.id
+            val binders = notation.binders
+            val binderPrecedences = notation.binderPrecedences
+            var idCount = 0
+            return StringTree(newToken, notation.notationLiterals.mapNotNull {
+                when (it) {
+                    is NotationLiteral.ID -> {
+                        val child = parseExpression(this, parseSingle(variables), binderPrecedences[idCount], variables)
+                        checkTypes(child.id.type(variables).sort, binders[idCount++].type.sort)?.foldRight(child) { coercion, tree -> StringTree(coercion.id, listOf(tree))  }?: error("actual type for term $idCount of notation ${notation.id} is ${child.id.type(variables).sort} but was expected to be ${binders[idCount].type.sort}")
+                    }
+                    is NotationLiteral.Constant -> {
+                        if (!current.charsEquals(it.constant)) error("we should have $current == ${it.constant}")
+                        moveRight(1)
+                        null
+                    }
+                }
+            })
+        }
+        error("this should not happen")
     }
 
     private fun checkTypes(actual: String, expected: String): List<M.Human.Coercion>? = if (actual == expected) listOf() else context.directCoercion(actual, expected)
@@ -246,7 +226,6 @@ fun tokens(charSequence: CharSequence, delimiters: STree<Delimiter>?, toTokenStr
         // TODO we should use a true trie... for delimiters
         val delim = delimiters.keyStarting(charSequence, position)
         if (delim != null) {
-            // we found a delimiter
             when (delim) {
                 is Delimiter.Left -> {
                     position += delim.key.length
@@ -275,5 +254,3 @@ fun tokens(charSequence: CharSequence, delimiters: STree<Delimiter>?, toTokenStr
     }
     if (tokenStart >= 0) yield(toTokenString(charSequence, tokenStart, tokenLimit))
 }
-
-private fun CharSequence.charPrefixAt(other: CharSequence, position: Int = 0): Boolean = other.length - position >= length && (0 until length).all { this[it] == other[position + it] }
