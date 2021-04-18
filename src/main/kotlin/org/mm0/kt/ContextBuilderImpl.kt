@@ -3,7 +3,7 @@ package org.mm0.kt
 /** Check that a constant is not replaced later by another for the DynamicParser
 Check that an id is not replaced later by another */
 
-class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=null, private var comp: STree<M.Computer>?=null, private var human: STree<M.Human>?=null, private var coercions: STree<STree<List<M.Human.Coercion>>>?=null, private var delimiters: STree<Delimiter>?=null, override val canonizer: Canonizer = Canonizer()) : ContextBuilder {
+class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=null, private var comp: STree<M.Computer>?=null, private var sorts:STree<M.Computer.Sort>?=null, private var human: STree<M.Human>?=null, private var coercions: STree<STree<List<M.Human.Coercion>>>?=null, private var delimiters: STree<Delimiter>?=null, override val canonizer: Canonizer = Canonizer()) : ContextBuilder {
     private val contexts = mutableListOf<ContextImpl>()
     override fun current(): Context = contexts.lastOrNull() ?: error("no context built yet")
 
@@ -41,12 +41,12 @@ class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=nu
             }
             is M.Computer.Term -> m.addIfFirst(m.id)
             is M.Computer.Definition -> m.addIfFirst(m.id)
-            is M.Computer.Sort -> m.addIfFirst(m.id)
+            is M.Computer.Sort -> m.addSortIfFirst(m.id)
             is M.Computer.Input -> TODO("I have not thought about those in this context yet")
             is M.Computer.Output -> TODO("I have not thought about those in this context yet")
             is M.Computer.Assertion -> m.addAssertionIfFirst(m.id)
         }
-        contexts.add(ContextImpl(assertions, comp, human, delimiters, coercions))
+        contexts.add(ContextImpl(assertions, comp, sorts, human, delimiters, coercions))
     }
 
     /** Check that a constant is not replaced later by another for the DynamicParser */
@@ -61,9 +61,14 @@ class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=nu
         assertions = assertions.put(id, this)
     }
 
+    private fun M.Computer.Sort.addSortIfFirst(id: String) {
+        sorts.find(id)?.let { error("$id id already used before $this") }
+        sorts = sorts.put(id, this)
+    }
+
     /** Check that an id is not replaced later by another */
     private fun M.Computer.addIfFirst(id: String) {
-        comp.find(id)?.let { error("$id id already used before $this") }
+        comp.find(id)?.let { error("$id id already used before $this with $it") }
         comp = comp.put(id, this)
     }
 }

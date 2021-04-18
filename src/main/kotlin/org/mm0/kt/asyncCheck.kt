@@ -98,10 +98,11 @@ private fun isMatch(term: Term, mm0: MM0): Boolean {
 private fun Context.isMatch(def: Definition, mm0: MM0): Boolean {
     if (mm0 !is MM0Definition || def.id != mm0.id) return false
     if (def.type != mm0.type) return false
-    if (mm0.humanBinders.asSequence().flatMap{ hb-> hb.names.mapNotNull { if (it.startsWith('.')) Binder(true, it.substring(1), hb.type) else null  } }.toList() != def.moreDummiesForDef) return false.apply{println("6667")}
     if (!mm0.humanBinders.isHumanValidMatch(def.binders)) return false
     val formula = mm0.formula
     if (formula != null) {
+        /** check additional dummies for non abstract definition */
+        if (mm0.humanBinders.asSequence().flatMap{ hb-> hb.names.mapNotNull { if (it.startsWith('.')) Binder(true, it.substring(1), hb.type) else null  } }.toList() != def.moreDummiesForDef) return false
         val parser = DynamicParser(this)
         val types = (def.binders + def.moreDummiesForDef) .associate { Pair(it.name as CharSequence, it.type) }
         val tree = parser.parse(formula, types)
