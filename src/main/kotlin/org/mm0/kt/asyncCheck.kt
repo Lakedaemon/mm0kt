@@ -102,7 +102,7 @@ private fun Context.isMatch(def: Definition, mm0: MM0): Boolean {
     val formula = mm0.formula
     if (formula != null) {
         /** check additional dummies for non abstract definition */
-        if (mm0.humanBinders.asSequence().flatMap{ hb-> hb.names.mapNotNull { if (it.startsWith('.')) Binder(true, it.substring(1), hb.type) else null  } }.toList() != def.moreDummiesForDef) return false
+        if (mm0.humanBinders.asSequence().flatMap{ hb-> hb.names.mapNotNull { if (it.startsWith('.')) Pair(it.substring(1), hb.type.sort) else null  } }.toSet() != def.moreDummiesForDef.map{Pair(it.name, it.type.sort)}.toSet()) return false
         val parser = DynamicParser(this)
         val types = (def.binders + def.moreDummiesForDef) .associate { Pair(it.name as CharSequence, it.type) }
         val tree = parser.parse(formula, types)
