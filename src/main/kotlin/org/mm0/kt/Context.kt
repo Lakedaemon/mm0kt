@@ -14,4 +14,11 @@ interface Context {
 
 
     fun typeFor(id:CharSequence):Type?
+
+    class Diff(val context1: Context, val context2: Context) :Context by context2 {
+        val newNotations: MutableMap<String, M.Human.Notation> = mutableMapOf()
+        val newOperators: MutableMap<String, M.Human.Operator> = mutableMapOf()
+        val newDefinitions: MutableMap<String, M.Computer.Definition> = mutableMapOf()
+        val hasDifferences: Boolean = context1 !== context2
+    }
 }

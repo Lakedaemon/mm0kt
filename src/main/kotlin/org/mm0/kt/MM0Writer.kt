@@ -2,21 +2,22 @@ package org.mm0.kt
 
 import org.mm0.kt.M.Computer.*
 import org.mm0.kt.M.Human.*
+import java.io.Closeable
 
-open class MM0Writer {
+open class MM0Writer:Closeable {
     open fun write(string: String) {}
-    open fun close() {}
+    override fun close() {}
 
     fun add(delimiters: Delimiters) = with(delimiters) { write("$DELIMITER $ ${(left + both).joinToString(" ")} $${if (right.isEmpty()) "" else right.joinToString(" ", prefix = " $ ", postfix = " $ ")};\n") }
     fun add(sort: Sort) = with(sort) { write("${if (isPure) "$PURE " else ""}${if (isStrict) "$STRICT " else ""}${if (isProvable) "$PROVABLE " else ""}${if (isFree) "$FREE " else ""}$SORT $id;\n") }
     fun add(coercion: Coercion) = with(coercion) { write("$COERCION $id : $coerced > $coercedInto;\n") }
     fun add(term: Term) = with(term) { write("$TERM $id ${binders.human().mm0()}} : ${type.mm0()};\n") }
-    fun add(operator: Operator) = with(operator) { write("$operatorType $id: $$constant$ prec ${precedence.toStringPrecedence()};\n") }
+    fun add(operator: Operator) = with(operator) { write("$operatorType $id: $$constant$ $PREC ${precedence.toStringPrecedence()};\n") }
 
     fun add(notation: Notation) = with(notation) { write("$NOTATION $id ${humanBinders.joinToString(" ") { it.mm0() }} : ${type.mm0()} = ($$constant$:${precedence.toStringPrecedence()}) ${notationLiterals.joinToString(" ") { it.mm0() }};\n") }
 
 
-    private fun Int.toStringPrecedence() = if (this == Int.MAX_VALUE) "max" else toString()
+    private fun Int.toStringPrecedence() = if (this == Int.MAX_VALUE) MAX else toString()
 
     // Beware, grouping might change the order of binders
     fun add(definition: Definition, toTree: StringTree.() -> String) = with(definition) { write("$DEFINITION $id ${binders.human().mm0()} : ${type.mm0()} = $ ${tree.toTree()} $;\n") }

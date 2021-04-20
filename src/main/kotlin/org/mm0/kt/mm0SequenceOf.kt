@@ -5,6 +5,7 @@ import org.mm0.kt.M.Computer.*
 import org.mm0.kt.MM0.*
 import org.mm0.kt.MM0.MM0Assert.*
 
+/** string must only hold ascii  chars */
 fun mm0SequenceOf(string:String, canonizer: Canonizer):Sequence<MM0>  = MM0Sequence(StringConsumable(string), canonizer)
 
 /** a flexible and efficient parser for mm0 files  :

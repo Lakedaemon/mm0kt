@@ -52,6 +52,7 @@ import org.mm0.kt.M.Computer.Assertion.*
 /** design :
  * read stuff as a charStream, with local buffer structure ?  */
 
+/** string must only hold ascii  chars */
 fun mmuSequenceOf(string: String, canonizer: Canonizer): Sequence<MMU> = MMUSequence(StringConsumable(string), canonizer)
 
 private class MMUSequence(private val consumable: Consumable, private val canonizer: Canonizer) : Sequence<MMU> {

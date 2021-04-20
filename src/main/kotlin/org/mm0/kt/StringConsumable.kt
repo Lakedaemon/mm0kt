@@ -24,7 +24,7 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
         while (p < lim) {
             val c = string[p] - '0'
             if (c !in 0..9) break
-            if (int > Consumable.INT_OVERFLOW_WITH) return null
+            if (int > (Int.MAX_VALUE-c) / 10) return null
             int = int * 10 + c
             p++
         }
@@ -48,9 +48,13 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
 
     override fun consumeId(allowDummy: Boolean): CharSequence? {
         var position = pos
+        var isFirstChar = true
         while (position < lim) {
             val c = string[position]
-            if (c != '_' && c !in '0'..'9' && c !in 'a'..'z' && c !in 'A'..'Z' && (c != '.' || !allowDummy)) break
+            val isDigit = c in '0'..'9'
+            if (c !in 'a'..'z' && c !in 'A'..'Z' && !isDigit && c != '_' && (c != '.' || !allowDummy)) break
+            if (isFirstChar && isDigit) return null
+            isFirstChar = false
             position++
         }
         if (position == pos) return null
