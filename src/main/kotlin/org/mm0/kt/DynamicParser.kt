@@ -123,7 +123,7 @@ class DynamicParser(private val context: Context, val canonizer: Canonizer = sim
                 }
             })
         }
-        error("this should not happen")
+        error("this should not happen (it happens with a bad definition with a formula that calls itself):\n$current")
     }
 
     private fun checkTypes(actual: String, expected: String): List<M.Human.Coercion>? = if (actual == expected) listOf() else context.directCoercion(actual, expected)

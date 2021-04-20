@@ -1,64 +1,68 @@
 package org.mm0.kt
 
-fun parsingDualFails() {
+fun parsingFailsForBoth() = failBoth("parsingBoth") {
     // ascii
-    "next line is not ascii".fails { sort("\u0085 s\u0085") }
-    "no-break-space is not ascii".fails { sort("\u00A0 s\u00A0") }
+    "next line is not ascii".test { sort("\u0085 s\u0085") }
+    "no-break-space is not ascii".test { sort("\u00A0 s\u00A0") }
 
     // identifier ::= [a-zA-Z_][a-zA-Z0-9_]
-    "empty id".fails { sort("") }
-    "empty id".fails { sort("\t") }
-    "bad id".fails { sort("0") }
-    "bad id".fails { sort("sot-") }
+    "empty id".test { sort("") }
+    "empty id".test { sort("\t") }
+    "bad id".test { sort("0") }
+    "bad id".test { sort("sot-") }
 
     // int
     // overflow int
-    "negative int".fails { op("plus", precedence = -1, constant = "+") }
+    "negative int".test { op("plus", precedence = -1, constant = "+") }
 
     // formula
+    "dollar in inner formula".test { both("a $ b") }
+    "dollar in inner formula".test { leftRight("a $ b") }
+    "dollar in inner formula".test { leftRight(right = listOf("a $ b")) }
 
     // delimiters
-    "empty delimiters".fails { both() }
-    "empty delimiters".fails { leftRight() }
+    "empty delimiters".test { both() }
+    "empty delimiters".test { leftRight() }
 
     // term
-    "term typed with a dummy".fails {
+    "term typed with a dummy".test {
         sort("s")
         term("a", "s")
     }
 }
+
 
 fun matchingFails() {
 
 }
 
-fun registeringFails() {
+fun registeringFails() = failBoth("registering") {
     // sort
-    "duplicated ids for sorts".fails {
+    "duplicated ids for sorts".test {
         sort("s", false)
         sort("s", true)
     }
 
     // pure means that this sort does not have any term formers. It is an uninterpreted domain which may have variables but has no constant symbols, binary operators, or anything else targeting this sort. If a sort has this modifier, it is illegal to declare a term with this sort as the target.
-    "term typed with a pure sort".fails {
+    "term typed with a pure sort".test {
         sort("s", isPure = true)
         term("a", "s ()")
     }
 
     // strict is the "opposite" of pure: it says that the sort does not have any variable binding operators. It is illegal to have a bound variable or dummy variable of this sort, and it cannot appear as a dependency in another variable. For example, if x: set and ph: wff x then set must not be declared strict. (pure and strict are not mutually exclusive, although a sort with both properties is not very useful.)
-    "dummy variable with a pure sort".fails {
+    "dummy variable with a pure sort".test {
         sort("s", isStrict = true)
         term("a", "s ()", "x s ()")
     }
 
-    "dependency with a pure sort".fails {
+    "dependency with a pure sort".test {
         sort("s", isPure = true)
         term("a", "s (x)", "x s ()")
     }
     // provable means that the sort is a thing that can be "proven". All formulas appearing in axioms and definitions (between $) must have a provable sort.*/
-    "formula without provable sort".fails {
+    "formula without provable sort".test {
         sort("s")
-        term("a", "s")
+        term("a", "s ()")
         def("b", "s ()", "a")
     }
     // free means that dummy variables may not be dropped in definitions unless they appear in binding syntax constructors.
@@ -66,19 +70,19 @@ fun registeringFails() {
 
 
     // coercion
-    "duplicated ids for coercion".fails {
+    "duplicated ids for coercion".test {
         sort("s")
         sort("t")
         sort("u")
         coercion("c", "s", "t")
         coercion("c", "s", "u")
     }
-    "idempotent coercion".fails {
+    "idempotent coercion".test {
         sort("s")
         coercion("c", "s", "s")
     }
 
-    "not unique coercion path".fails {
+    "not unique coercion path".test {
         sort("s")
         sort("t")
         sort("u")
@@ -87,15 +91,15 @@ fun registeringFails() {
         coercion("c3", "s", "u")
     }
 
-    "duplicated id for terms".fails {
+    "duplicated id for terms".test {
         sort("s")
         sort("t")
         term("a", "s ()")
         term("a", "t ()")
     }
-    "term with non-existent sort".fails { term("a", "s ()") }
+    "term with non-existent sort".test { term("a", "s ()") }
 
-    "term shadowing a def".fails {
+    "term shadowing a def".test {
         sort("s")
         term("a", "s ()")
         def("b", "s ()", "a")
@@ -103,13 +107,13 @@ fun registeringFails() {
     }
 
     // def
-    "def shadowing a term".fails {
+    "def shadowing a term".test {
         sort("s")
         term("a", "s ()")
         term("b", "s ()")
         def("a", "s ()", "b")
     }
-    "recursive def".fails {
+    "recursive def".test {
         sort("s")
         def("a", "s ()", "a")
     }
@@ -118,7 +122,7 @@ fun registeringFails() {
 fun proofCheckingFail() {}
 
 fun fail() {
-    parsingDualFails()
+    parsingFailsForBoth()
     matchingFails()
     registeringFails()
     proofCheckingFail()

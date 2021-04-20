@@ -38,5 +38,5 @@ class MMUTestFileWriter(path: String, val shouldBeWeird:Boolean) : TestWriter, C
     override fun coercion(id: String, coerced: String, coercedInto: String) {}
     override fun term(id: String, type: String, vararg binders: String, mm0Declaration: String) = this w "(" w TERM s id s "(" w binders.joinToString(" "){"($it)"} w ")" s "(" w type w ")" w ")" sr "\n"
     override fun op(id: String, constant: String, precedence: Int, opType: String) {}
-    override fun def(id: String, type: String, tree: String, vararg binders: String, moreDummies: String, mm0Declaration: String) :Unit =this w DEFINITION s id s binders.joinToString(" ")  s "(" s type s ")" s "(" s moreDummies s ")" s tree s ")" sr "\n"
+    override fun def(id: String, type: String, tree: String, vararg binders: String, moreDummies: String, mm0Declaration: String) :Unit =this s "(" w DEFINITION s id s "(" s binders.joinToString(" ")  s ")" s "(" s type s ")" s "(" s moreDummies s ")" s tree s ")" sr "\n"
 }
