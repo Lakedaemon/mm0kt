@@ -6,20 +6,20 @@ sealed class TestFolder(subDir:String, protected val shouldPass:Boolean) {
     class MM0(subDir:String, shouldPass:Boolean) : TestFolder(subDir, shouldPass) {
         fun String.test(write: TestWriter.() -> Unit) {
             val uniqueName = unique(this)
-            MM0TestFileWriter("$folder/$uniqueName.mm0", shouldPass).use { it.write() }
+            MM0TestFileWriter("$folder/$uniqueName.mm0").use { it.write() }
         }
     }
     class MMU(subDir:String, shouldPass:Boolean) : TestFolder(subDir, shouldPass) {
         fun String.test(write: TestWriter.() -> Unit) {
             val uniqueName = unique(this)
-            MMUTestFileWriter("$folder/$uniqueName.mmu", shouldPass).use { it.write() }
+            MMUTestFileWriter("$folder/$uniqueName.mmu").use { it.write() }
         }
     }
     class Both(subDir:String, shouldPass:Boolean) : TestFolder(subDir, shouldPass) {
         fun String.test(mm0: MM0TestFileWriter.() -> Unit, mmu: MMUTestFileWriter.() -> Unit) {
             val uniqueName = unique(this)
-            MM0TestFileWriter("$folder/$uniqueName.mm0", shouldPass).use { it.mm0() }
-            MMUTestFileWriter("$folder/$uniqueName.mmu", shouldPass).use { it.mmu() }
+            MM0TestFileWriter("$folder/$uniqueName.mm0").use { it.mm0() }
+            MMUTestFileWriter("$folder/$uniqueName.mmu").use { it.mmu() }
         }
         fun String.test(write: TestWriterBoth.() -> Unit) = test({ write() }, { write() })
     }

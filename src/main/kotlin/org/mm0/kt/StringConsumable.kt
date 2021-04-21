@@ -12,7 +12,7 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
                     pos += 2
                     while (pos < lim && look() != '\n') pos++
                 }
-                !c.isWhitespace() && c != '\n' -> return
+                c != ' ' && c != '\n' -> return
             }
             pos++
         }
@@ -24,7 +24,7 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
         while (p < lim) {
             val c = string[p] - '0'
             if (c !in 0..9) break
-            if (int > (Int.MAX_VALUE-c) / 10) return null
+            if (int > (Int.MAX_VALUE - c) / 10) return null
             int = int * 10 + c
             p++
         }

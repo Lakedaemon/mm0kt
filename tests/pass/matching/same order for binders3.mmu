@@ -1,4 +1,2 @@
-(sort s
- 		)
-
+(sort s     ) 
 (term a ((x s ())(y s ())) (s ())

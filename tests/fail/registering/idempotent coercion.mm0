@@ -1,2 +1,0 @@
-    sort s ; 
-coercion c : s > s ; 

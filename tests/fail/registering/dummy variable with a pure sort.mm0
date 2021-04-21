@@ -1,2 +1,2 @@
- strict    sort s ; 
-term a (x : s) : s ; 
+pure     sort s ; 
+term a {x : s} : s ; 

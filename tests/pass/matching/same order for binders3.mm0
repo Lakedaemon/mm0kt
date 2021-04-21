@@ -1,5 +1,2 @@
-			
-	sort
-s
-;	
+    sort s ; 
 term a (x y: s):s;

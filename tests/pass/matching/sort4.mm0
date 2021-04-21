@@ -1,4 +1,1 @@
-	strict 		
-	sort
-s
-;	
+ strict    sort s ; 

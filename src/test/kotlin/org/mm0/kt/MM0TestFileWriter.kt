@@ -5,9 +5,7 @@ import java.io.File
 import java.io.FileWriter
 import kotlin.random.Random
 
-class MM0TestFileWriter(path: String, val shouldBeWeird:Boolean) : TestWriterBoth, Closeable {
-    private val random = Random(666)
-    private val whiteSpaces = listOf("\u000A", "\u000B", "\u000C", " ", "\t")
+class MM0TestFileWriter(path: String) : TestWriterBoth, Closeable {
 
     private val fW = FileWriter(File(path))
     private fun write(string: String) {
@@ -20,12 +18,12 @@ class MM0TestFileWriter(path: String, val shouldBeWeird:Boolean) : TestWriterBot
 
     private infix fun MM0TestFileWriter.w(s: String): MM0TestFileWriter = apply { write(s) }
     private infix fun MM0TestFileWriter.s(s: String): MM0TestFileWriter = apply {
-        if (!shouldBeWeird) fW.write(" ") else for (a in 0..(random.nextInt().toPositive() % 3)) write(whiteSpaces[random.nextInt().toPositive() % whiteSpaces.size])
+        write(" ")
         write(s)
     }
 
     private infix fun MM0TestFileWriter.sr(end: String) {
-        this s if (!shouldBeWeird || random.nextBoolean()) end else ""
+        this s end
     }
 
     override fun both(vararg both: String) = this w DELIMITER s "$" s both.joinToString(" ") s "$" s ";" sr "\n"
@@ -34,7 +32,13 @@ class MM0TestFileWriter(path: String, val shouldBeWeird:Boolean) : TestWriterBot
     override fun coercion(id: String, coerced: String, coercedInto: String) = this w COERCION s id s ":" s coerced s ">" s coercedInto s ";" sr "\n"
     override fun term(id: String, type: String, vararg binders: String) = this w TERM s id s binders.map{ it.toBinder()}.mm0() s ":" s type.toType().mm0() s ";" sr "\n"
     override fun op(id: String, constant: String, precedence: Int, opType: String) =this w opType s id s ":" s "$" s constant s "$" s PREC s  (if (precedence == Int.MAX_VALUE) MAX else precedence.toString()) s ";" sr "\n"
-    override fun def(id: String, type: String, tree: String, vararg binders: String, moreDummies: String) :Unit = this s DEFINITION s id s binders.map{ it.toBinder()}.mm0() s ":" s type.toType().mm0() s "=" s "$" s tree s "$" s ";" sr "\n"
+    override fun def(id: String, type: String, tree: String, vararg binders: String, moreDummies: String, isAbstract:Boolean, isMMUOnly:Boolean)  {
+        if (isMMUOnly) return
+        this s DEFINITION s id s binders.map{ it.toBinder()}.mm0() s ":" s type.toType().mm0()
+        if (isAbstract) this w ";\n" else this s "=" s "$" s tree s "$" sr ";\n"
+    }
+    override fun axiom(id:String, conclusion:String, vararg binders:String, hypotheses:List<String>) {}
+
 
     override fun raw(string: String) = write(string)
     override fun mm0(string: String) = write(string)

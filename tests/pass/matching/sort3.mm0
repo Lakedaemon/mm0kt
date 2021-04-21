@@ -1,4 +1,1 @@
-			provable 
-	sort
-s
-;	
+  provable   sort s ; 

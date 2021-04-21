@@ -12,9 +12,7 @@ interface Consumable {
     fun look(): Char
 
 
-    /** gobbles all white chars :
-    isWhitespace()
-    '\n'
+    /** gobbles all whitespace chars (' ' and '\n') :
     -- line comments \n
      */
     fun consume()

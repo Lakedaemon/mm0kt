@@ -12,14 +12,17 @@ fun parsingPassForMMU() = passMMU("parsingMMU") {
 fun parsingPassForBoth() = passBoth("parsingBoth") {
     // mm0 and mmu syntax
 
-    "tab is whitespace".test { sort("\t a\t") }
-    "line feed is whitespace".test { sort("\u000A a\u000A") }
-    "line tabulation is whitespace".test { sort("\u000B a\u000B") }
-    "form feed is whitespace".test { sort("\u000C a\u000C") }
-    "carriage return is whitespace".test { sort("\u000D a\u000D") }
+    // whitespace
+    "space is a valid whitespace".test { sort("s    ") }
+    "line feed is a valid whitespace".test { sort("s\n\n") }
+
+    "empty delimiters".test { both() }
+    "empty delimiters".test { leftRight() }
+
+
 
     // int
-    "big int support".test { op("plus", precedence = Int.MAX_VALUE - 1, constant = "+") }
+    "big int support".test { op("plus", precedence = 2046, constant = "+") }
     // delimiters
     "duplicate delimiters".test { both("(", "(") }
     "duplicate delimiters".test { leftRight("(", "(") }
@@ -59,12 +62,35 @@ fun matchingPass() = passBoth("matching") {
     }
 }
 
-fun registeringPass() = passBoth("registering") {}
+fun registeringPass() = passBoth("registering") {
+    "reflexive coercion".test {
+        sort("s")
+        coercion("c", "s", "s")
+    }
+
+    "term typed with a dummy".test {
+        sort("s")
+        term("a", "s")
+    }
+
+}
 
 fun proofCheckingPass() = passBoth("proofChecking") {
+    "blank file".test { raw(" \n ") }
     "trivial file".test { both("( )") }
 }
 
+fun optionalBoth() = passBoth("optionalBoth") {
+    // verifiers are only required to support up to prec 2046
+    "big int support".test { op("plus", precedence = Int.MAX_VALUE - 1, constant = "+") }
+
+    // Not a fail test, since verifiers are permitted to alpha rename. Maybe "optional success"?
+    "different binders order".test {
+        sort("s")
+        mm0("term a (x y: s):s;")
+        mmu("(term a ((y s ())(x s ())) (s ())")
+    }
+}
 
 fun pass() {
     parsingPassForMM0()

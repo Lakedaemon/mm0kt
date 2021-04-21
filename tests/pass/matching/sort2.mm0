@@ -1,4 +1,1 @@
-pure 			
-	sort
-s
-;	
+pure     sort s ; 

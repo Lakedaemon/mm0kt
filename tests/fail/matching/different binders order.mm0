@@ -1,2 +1,3 @@
     sort s ; 
-term a (x y: s):s;
+    sort t ; 
+term a: s > t > s;
