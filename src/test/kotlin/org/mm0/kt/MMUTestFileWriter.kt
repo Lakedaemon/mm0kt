@@ -5,7 +5,7 @@ import java.io.File
 import java.io.FileWriter
 import kotlin.random.Random
 
-class MMUTestFileWriter(path: String, val shouldBeWeird:Boolean) : TestWriter, Closeable {
+class MMUTestFileWriter(path: String, val shouldBeWeird:Boolean) : TestWriterBoth, Closeable {
     private val random = Random(6666)
     private val whiteSpaces = listOf("\u000A", "\u000B", "\u000C", " ", "\t")
 
@@ -36,7 +36,11 @@ class MMUTestFileWriter(path: String, val shouldBeWeird:Boolean) : TestWriter, C
     override fun leftRight(vararg left: String, right: List<String>) {}
     override fun sort(id: String, isPure: Boolean, isStrict: Boolean, isProvable: Boolean, isFree: Boolean) = this w "($SORT" s id s (if (isPure) " $PURE" else "") s (if (isStrict) " $STRICT" else "") s (if (isProvable) " $PROVABLE" else "") s (if (isFree) " $FREE" else "") s ")" sr "\n"
     override fun coercion(id: String, coerced: String, coercedInto: String) {}
-    override fun term(id: String, type: String, vararg binders: String, mm0Declaration: String) = this w "(" w TERM s id s "(" w binders.joinToString(" "){"($it)"} w ")" s "(" w type w ")" w ")" sr "\n"
+    override fun term(id: String, type: String, vararg binders: String) = this w "(" w TERM s id s "(" w binders.joinToString(" "){"($it)"} w ")" s "(" w type w ")" w ")" sr "\n"
     override fun op(id: String, constant: String, precedence: Int, opType: String) {}
-    override fun def(id: String, type: String, tree: String, vararg binders: String, moreDummies: String, mm0Declaration: String) :Unit =this s "(" w DEFINITION s id s "(" s binders.joinToString(" ")  s ")" s "(" s type s ")" s "(" s moreDummies s ")" s tree s ")" sr "\n"
+    override fun def(id: String, type: String, tree: String, vararg binders: String, moreDummies: String) :Unit =this s "(" w DEFINITION s id s "(" s binders.joinToString(" ")  s ")" s "(" s type s ")" s "(" s moreDummies s ")" s tree s ")" sr "\n"
+
+    override fun raw(string: String) = write(string)
+    override fun mm0(string: String) {}
+    override fun mmu(string: String) = write(string)
 }

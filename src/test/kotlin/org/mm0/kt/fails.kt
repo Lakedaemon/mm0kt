@@ -1,9 +1,26 @@
 package org.mm0.kt
 
+fun parsingFailsForMM0() = failMM0("parsingMM0") {
+    "abstract def with declared dummies".test {
+        sort("s")
+        def(tree="", moreDummies = "x s")
+    }
+}
+
+fun parsingFailsForMMU() = failMMU("parsingMMU") {
+    // local def
+
+    // local theorem
+
+}
+
 fun parsingFailsForBoth() = failBoth("parsingBoth") {
+
     // ascii
     "next line is not ascii".test { sort("\u0085 s\u0085") }
     "no-break-space is not ascii".test { sort("\u00A0 s\u00A0") }
+
+    "blank file".test { raw(" \t\n ") }
 
     // identifier ::= [a-zA-Z_][a-zA-Z0-9_]
     "empty id".test { sort("") }
@@ -20,6 +37,11 @@ fun parsingFailsForBoth() = failBoth("parsingBoth") {
     "dollar in inner formula".test { leftRight("a $ b") }
     "dollar in inner formula".test { leftRight(right = listOf("a $ b")) }
 
+    "garbage after last statement".test {
+        sort("s")
+        raw(" garbage ")
+    }
+
     // delimiters
     "empty delimiters".test { both() }
     "empty delimiters".test { leftRight() }
@@ -32,8 +54,19 @@ fun parsingFailsForBoth() = failBoth("parsingBoth") {
 }
 
 
-fun matchingFails() {
-
+fun matchingFails() = failBoth("matching"){
+//term
+    "different binders order".test{
+        sort("s")
+        mm0("term a (x y: s):s;")
+        mmu("(term a ((y s ())(x s ())) (s ())")
+    }
+    "different binders order".test{
+        sort("s")
+        sort("t")
+        mm0("term a: s > t > s;")
+        mmu("(term a ((y t ())(x s ())) (s ())")
+    }
 }
 
 fun registeringFails() = failBoth("registering") {
@@ -122,6 +155,8 @@ fun registeringFails() = failBoth("registering") {
 fun proofCheckingFail() {}
 
 fun fail() {
+    parsingFailsForMM0()
+    parsingFailsForMMU()
     parsingFailsForBoth()
     matchingFails()
     registeringFails()
