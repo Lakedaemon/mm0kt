@@ -1,2 +1,2 @@
-pure     sort s ; 
-term a (x : s) : s x ; 
+pure sort s;
+term a (x : s) : s x;

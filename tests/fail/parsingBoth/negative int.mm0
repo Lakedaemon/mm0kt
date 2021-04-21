@@ -1,1 +1,1 @@
-prefix plus : $ + $ prec -1 ; 
+prefix plus : $ + $ prec -1;

@@ -116,6 +116,7 @@ fun registeringFails() = failBoth("registering") {
     }
 
     // coercion
+    // GOT ME
     "duplicated ids for coercion".test {
         sort("s")
         sort("t")

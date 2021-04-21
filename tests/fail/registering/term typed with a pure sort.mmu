@@ -1,2 +1,2 @@
-(sort s  pure    ) 
-(term a () (s ())) 
+(sort s  pure   )
+(term a () (s ()))

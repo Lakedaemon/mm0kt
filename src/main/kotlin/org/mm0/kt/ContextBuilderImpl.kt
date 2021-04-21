@@ -17,6 +17,9 @@ class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=nu
             is M.Human.Operator -> m.addIfFirst(m.constant)
             is M.Human.Notation -> m.addIfFirst(m.constant)
             is M.Human.Coercion -> {
+
+                //coercions.find(m.id)?.let { error("${m.id} id already used before $this with $it") }
+
                 /** it is an error if there there are other ways to do the m coercion */
                 val otherCoercionWay =  coercions.find(m.coerced).find(m.coercedInto)
                 if (otherCoercionWay != null) error("There is already a way to coerce ${m.coerced} into ${m.coercedInto} through $otherCoercionWay")
