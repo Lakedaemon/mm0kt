@@ -1,0 +1,2 @@
+(sort s   strict   ) 
+(term a ((x s ())) (s ())) 

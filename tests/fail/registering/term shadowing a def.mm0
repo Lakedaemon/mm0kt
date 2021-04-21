@@ -1,0 +1,4 @@
+    sort s ; 
+term a  : s ; 
+ def b  : s = $ a $ ; 
+term b  : s ; 

@@ -1,0 +1,2 @@
+ strict    sort s ; 
+term a (x : s) : s ; 
