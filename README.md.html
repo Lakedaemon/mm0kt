@@ -10,6 +10,7 @@ This repository implements in (pure) Kotlin:
 - [x] a (mm0/mmu) one-pass proofchecker
 - [ ] a (pipelinable) patcher for set.mm.mm0 and set.mm.mmu
 - [ ] a patch mm0-ifying set.mm
+- [ ] a mm0 vs mmu test suite (and semi-automatic test creation methods)
 
 # Goals 
 
@@ -19,8 +20,22 @@ This repository implements in (pure) Kotlin:
    - [ ] proof-checker
       - [x] string.mm0 (without Input and Output support)
       - [x] hello.mm0 (without Input and Output support)
-      - [ ] peano.mm0 (without Input and Output support)
+      - [x] peano.mm0 (without Input and Output support)
       - [x] set.mm.mm0
+   - [ ] mm0 writer
+   - [ ] mmu writer
+   - [ ] patcher
+ - [ ] test suite
+  - [x] test creation api (tests 52, found bugs 12, fixed bugs 4)
+  - [ ] parsing
+    -[ ] ascii
+    -[ ] whitechar
+    -[x] id (p1 - f5, 0+u)
+    -[ ] formula
+    -[ ] int
+  - [ ] matching
+  - [ ] registering
+  - [ ] proof checking
  - [ ] mm0-ification of set.mm (a subset of maths) : 
    - [ ] turn most mm axioms into theorems
    - [ ] introduce definitions, operators, notations whenever sensible

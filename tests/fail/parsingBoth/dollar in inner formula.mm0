@@ -1,1 +1,2 @@
+--Inside a math string $ cannot appear : math-string ::= '$' [^\$]* '$'
 delimiter $ a $ b $;

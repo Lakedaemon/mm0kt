@@ -6,7 +6,7 @@ import java.io.FileWriter
 
 class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
     private val contextBuilder = ContextBuilderImpl()
-    private fun parser() :DynamicParser {
+    private fun parser(): DynamicParser {
         for (m in registeringQueue) contextBuilder.register(m)
         registeringQueue.clear()
         return DynamicParser(contextBuilder.current())
@@ -37,12 +37,18 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
     private fun register(m: M) {
         registeringQueue.add(m)
     }
+
     override fun comment(vararg strings: String) {}
     override fun both(vararg both: String) = register(M.Human.Delimiters(listOf(), both.toList(), listOf()))
     override fun leftRight(vararg left: String, right: List<String>) = register(M.Human.Delimiters(left.toList(), listOf(), right))
     override fun sort(id: String, isPure: Boolean, isStrict: Boolean, isProvable: Boolean, isFree: Boolean) {
         register(M.Computer.Sort(id, isPure = isPure, isStrict = isStrict, isProvable = isProvable, isFree = isFree))
-        this w "($SORT" s id s (if (isPure) " $PURE" else "") s (if (isStrict) " $STRICT" else "") s (if (isProvable) " $PROVABLE" else "") s (if (isFree) " $FREE" else "") ww ")\n"
+        this w "($SORT" s id
+        if (isPure) this s PURE
+        if (isStrict) this s STRICT
+        if (isProvable) this s PROVABLE
+        if (isFree) this s FREE
+        this ww ")\n"
     }
 
     override fun coercion(id: String, coerced: String, coercedInto: String) = register(M.Human.Coercion(id, coerced, coercedInto))
@@ -73,8 +79,8 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
     }
 
     private fun Consumable.tree(): StringTree {
-        if (!consumeIf('(')) return StringTree(consumeId(false)?.toString()?:error("cannot parse $this"), listOf())
-        val id = consumeId(false)?.toString()?:error("cannot parse $this")
+        if (!consumeIf('(')) return StringTree(consumeId(false)?.toString() ?: error("cannot parse $this"), listOf())
+        val id = consumeId(false)?.toString() ?: error("cannot parse $this")
         val list = mutableListOf<StringTree>()
         while (!skipIf(')')) {
             list.add(tree())
@@ -148,43 +154,11 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
             ftb.names.forEach { s -> hypotheses.add(NamedHypothesis(s, tree)) }
         }
         // what to do with arrows that are type ?
-        trueArrows.dropLast(1).forEachIndexed { index, formulaOrType -> if (formulaOrType is FormulaOrType.Formula) hypotheses.add(NamedHypothesis(underscoreCS+index, parser.parse(formulaOrType.formula, types))) }
-
-
-        // compute vars out of arrows and or binders
-        //val types = ax.binders.associate { Pair(it.name as CharSequence, it.type) }
-
-        /*for (arrow in trueArrows.dropLast(1)) when (arrow)
-        {
-            is FormulaOrType.Formula -> hypotheses.add(NamedHypothesis(underscoreCS, dynamicParser.parse(arrow.formula, types)))
-            is FormulaOrType.Type -> {
-            println("meh" + mm0.report())
-            TODO()
-        }
-        }
-
-        val formula = trueArrows.last()
-        if (formula !is FormulaOrType.Formula || dynamicParser.parse(formula.formula, types) != ax.conclusion) return false.apply
-        { println("form false $formula\nparsed=${dynamicParser.parse((formula as? FormulaOrType.Formula)?.formula ?: "gah", types)}") }
-
-        mm0.formulaTypeBinders.forEach
-        {
-            when (it) {
-                is FormulaTypeBinder.Formula -> {
-                    if (it.names.size != 1) return false
-                    hypotheses.add(NamedHypothesis(it.names.first(), dynamicParser.parse(it.formula, types)))
-                }
-                is FormulaTypeBinder.Type -> binders.addAll(it.names.map { s -> Binder(it.isBound, s, it.type) })
-            }
-        }*/
+        trueArrows.dropLast(1).forEachIndexed { index, formulaOrType -> if (formulaOrType is FormulaOrType.Formula) hypotheses.add(NamedHypothesis(underscoreCS + index, parser.parse(formulaOrType.formula, types))) }
 
 
         this w "(" w AXIOM s id s "(" w binders.joinToString(" ") { it.mmu() } w ") (" w hypotheses.joinToString(" ") { it.formula.toMmuTree() } w ")" s parser.parse((trueArrows.last() as FormulaOrType.Formula).formula, types).toMmuTree() ww ")\n"
     }
-
-/*override fun axiom(id: String, conclusion: String, vararg formulaTypeBinders: String, hypotheses: List<String>) {
-    this w "(" w AXIOM s id s "(" w formulaTypeBinders.joinToString(" ") w ")" s "(" w hypotheses.joinToString(" ") w ")" s conclusion ww ")\n"
-}*/
 
     override fun raw(string: String) = write(string)
     override fun mm0(string: String) {}

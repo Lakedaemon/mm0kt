@@ -1,6 +1,17 @@
 package org.mm0.kt
 
 fun parsingFailsForMM0() = failMM0("parsingMM0") {
+    // int
+    "negative int".test {
+        comment("A lexeme is either one of the symbols, an identifier, a number (nonnegative integer), or a math string : number ::= 0 | [1-9][0-9]*")
+        op("plus", precedence = -1, constant = "+")
+    }
+
+    "int prefixed with 0".test {
+        comment("number ::= 0 | [1-9][0-9]*")
+        raw("prefix p : $+$ prec 01;")
+    }
+
     "abstract def with declared dummies".test {
         sort("s")
         term("a", "s")
@@ -16,36 +27,71 @@ fun parsingFailsForMMU() = failMMU("parsingMMU") {
 }
 
 fun parsingFailsForBoth() = failBoth("parsingBoth") {
-
     // ascii
-    "next line is not ascii".test { sort("s\u0085") }
+    "next line is not ascii".test {
+        sort("s\u0085")
+    }
     "no-break-space is not ascii".test { sort("s\u00A0") }
 
     // whitespace
-    // GOT ME
-    "tab is not a valid whitespace".test { sort("s\t") }
-    // GOT ME
-    "line tabulation is not a valid whitespace".test { sort("s\u000B") }
-    // GOT ME
-    "form feed is not a valid whitespace".test { sort("s\u000C") }
-    // GOT ME
-    "carriage return is not a valid whitespace".test { sort("s\u000D") }
+    "tab is not a valid whitespace".test {
+        comment(" whitechar ::= ' ' | '\\n'")
+        sort("s\t") }
+    "line tabulation is not a valid whitespace".test {
+        comment(" whitechar ::= ' ' | '\\n'")
+        sort("s\u000B")
+    }
+    "form feed is not a valid whitespace".test {
+        comment(" whitechar ::= ' ' | '\\n'")
+        sort("s\u000C")
+    }
+    "carriage return is not a valid whitespace".test {
+        comment(" whitechar ::= ' ' | '\\n'")
+        sort("s\u000D")
+    }
 
 
-    // identifier ::= [a-zA-Z_][a-zA-Z0-9_]
-    "empty id".test { sort("") }
-    "empty id".test { sort("\t") }
-    "bad id".test { sort("0") }
-    "bad id".test { sort("sot-") }
-
-    // int
-    // overflow int
-    "negative int".test { op("plus", precedence = -1, constant = "+") }
+    // id
+    "an id cannot be empty".test {
+        comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+        sort("")
+    }
+    "an id cannot be blank".test {
+        comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+        sort(" \n ")
+    }
+    "an id cannot start with digit".test {
+        comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+        sort("0")
+    }
+    "bad char in id".test {
+        comment("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+        sort("sot-")
+    }
+    "a single underscore is not an id".test {
+        comment(" the single character _ is not an identifier")
+        sort("_")
+    }
 
     // formula
-    "dollar in inner formula".test { both("a $ b") }
-    "dollar in inner formula".test { leftRight("a $ b") }
-    "dollar in inner formula".test { leftRight(right = listOf("a $ b")) }
+    "dollar in inner formula".test {
+        comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
+        both("a $ b")
+    }
+    "dollar in inner formula".test {
+        comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
+        leftRight("a $ b")
+    }
+    "dollar in inner formula".test {
+        comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
+        leftRight(right = listOf("a $ b"))
+    }
+
+
+
+
+
+
 
     "garbage after last statement".test {
         sort("s")
@@ -162,7 +208,7 @@ fun registeringFails() = failBoth("registering") {
 
     "recursive def".test {
         sort("s")
-        def("a", "s", "a ", tree="a")
+        def("a", "s", "a ", tree = "a")
     }
 }
 

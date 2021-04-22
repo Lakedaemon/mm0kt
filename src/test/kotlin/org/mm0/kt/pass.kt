@@ -10,6 +10,10 @@ fun parsingPassForMMU() = passMMU("parsingMMU") {
 }
 
 fun parsingPassForBoth() = passBoth("parsingBoth") {
+    "normal id".test {
+        comment("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+        sort("_I_4M_an_1d")
+    }
     // mm0 and mmu syntax
 
     // whitespace
