@@ -21,14 +21,18 @@ package org.mm0.kt
  * */
 interface TestWriter {
     /** delimiters */
+    fun comment(vararg strings:String)
     fun both(vararg both: String)
     fun leftRight(vararg left: String, right: List<String> = listOf())
     fun sort(id: String="s", isPure: Boolean = false, isStrict: Boolean = false, isProvable: Boolean = false, isFree: Boolean = false)
     fun coercion(id: String = "id${idCount++}", coerced: String, coercedInto: String)
-    fun term(id: String  = "id${idCount++}", type: String ="s ()", vararg binders: String)
+    fun term(id: String  = "id${idCount++}", arrows: String ="s", vararg humanBinders: String)
     fun op(id: String = "id${idCount++}", constant: String ="+", precedence: Int=10, opType: String = PREFIX)
-    fun def(id: String = "id${idCount++}", type: String = "s ()", tree: String, vararg binders: String, moreDummies: String = "", isAbstract:Boolean=false, isMMUOnly :Boolean = false)
-    fun axiom(id:String= "id${idCount++}", conclusion:String, vararg binders:String, hypotheses:List<String> =listOf())
+    // todo infer tree from formula
+    fun def(id: String = "id${idCount++}", type: String = "s", formula: String?, vararg humanBinders: String, tree:String=formula?:"", isLocal: Boolean=false)
+
+    /** standardize on mm0*/
+    fun axiom(id:String= "id${idCount++}", arrows:String, vararg formulaTypeBinders:String)
 
     fun raw(string:String)
     companion object {

@@ -5,6 +5,7 @@ import org.mm0.kt.M.Computer.*
 
 sealed class MM0 {
     /** mm0 specific, stuff for humans and the dynamic parser */
+    class MM0LineComment(val lineComment:LineComment): MM0()
     data class MM0Delimiters(val delimiters: Delimiters) : MM0()
     data class MM0Coercion(val coercion: Coercion) : MM0()
     data class MM0Operator(val operator: Operator) : MM0()

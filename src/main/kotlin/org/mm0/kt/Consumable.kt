@@ -47,6 +47,9 @@ interface Consumable {
      * or returns null without moving */
     fun consumeFormula(): String?
 
+    /** consumes everything till the next line 'EOF or '\n' */
+    fun consumeLine():String
+
     /** reports current position */
     fun position(): Int
 

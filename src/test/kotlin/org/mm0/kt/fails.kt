@@ -3,8 +3,8 @@ package org.mm0.kt
 fun parsingFailsForMM0() = failMM0("parsingMM0") {
     "abstract def with declared dummies".test {
         sort("s")
-        term("a", "s ()")
-        def(tree="a", moreDummies = "x s", isAbstract = true)
+        term("a", "s")
+        def("d", "s", null, "(.x:s)", tree = "a")
     }
 }
 
@@ -30,7 +30,6 @@ fun parsingFailsForBoth() = failBoth("parsingBoth") {
     "form feed is not a valid whitespace".test { sort("s\u000C") }
     // GOT ME
     "carriage return is not a valid whitespace".test { sort("s\u000D") }
-
 
 
     // identifier ::= [a-zA-Z_][a-zA-Z0-9_]
@@ -61,10 +60,10 @@ fun parsingFailsForBoth() = failBoth("parsingBoth") {
 }
 
 
-fun matchingFails() = failBoth("matching"){
+fun matchingFails() = failBoth("matching") {
 //term
 
-    "different binders order".test{
+    "different binders order".test {
         sort("s")
         sort("t")
         mm0("term a: s > t > s;")
@@ -82,37 +81,33 @@ fun registeringFails() = failBoth("registering") {
     // pure means that this sort does not have any term formers. It is an uninterpreted domain which may have variables but has no constant symbols, binary operators, or anything else targeting this sort. If a sort has this modifier, it is illegal to declare a term with this sort as the target.
     "term typed with a pure sort".test {
         sort("s", isPure = true)
-        term("a", "s ()")
+        term("a", "s")
     }
-
 
 
     // strict is the "opposite" of pure: it says that the sort does not have any variable binding operators. It is illegal to have a bound variable or dummy variable of this sort, and it cannot appear as a dependency in another variable. For example, if x: set and ph: wff x then set must not be declared strict. (pure and strict are not mutually exclusive, although a sort with both properties is not very useful.)
     "dummy variable with a pure sort".test {
         sort("s", isPure = true)
-        term("a", "s ()", "x s")
+        term("a", "s", "{x:s}")
     }
 
     "dependency with a pure sort".test {
         sort("s", isPure = true)
-        term("a", "s (x)", "x s ()")
+        term("a", "s x", "(x:s)")
     }
-    // provable means that the sort is a thing that can be "proven". All formulas appearing in axioms and definitions (between $) must have a provable sort.*/
     "assertion formula without provable sort".test {
         sort("s")
-        term("a", "s ()")
-        axiom("b", "a", "x s ()")
-        mm0("axiom b (x:s): $ a $;")
+        term("a", "s")
+        comment("""provable means that the sort is a thing that can be "proven". All formulas appearing in axioms and theorems (between $) must have a provable sort""")
+        axiom("b", "$ a $", "(x:s)")
+        //mm0("axiom b (x:s): $ a $;")
     }
-    // free means that dummy variables may not be dropped in definitions unless they appear in binding syntax constructors.
-    // how to test that ? What does it mean ?
-    // pure means that this sort does not have any term formers. It is an uninterpreted domain which may have variables but has no constant symbols, binary operators, or anything else targeting this sort. If a sort has this modifier, it is illegal to declare a term with this sort as the target.
+
     "term typed with a pure sort".test {
         sort("s", isFree = true)
-        term("f", "s ()", "x s")
-        mmu("(def y (s ()) ()")
-        def("y", "s ()", "(f x)", isMMUOnly = true)
-        mm0("def y (.x: s): s = \$ f x \$;")
+        term("f", "s", "{x:s}")
+        comment("free means that dummy variables may not be dropped in definitions unless they appear in binding syntax constructors.")
+        def("y", "s", "f x", "(.x:s)"/*, tree="(f x)"*/)
     }
 
     // coercion
@@ -138,29 +133,36 @@ fun registeringFails() = failBoth("registering") {
     "duplicated id for terms".test {
         sort("s")
         sort("t")
-        term("a", "s ()")
-        term("a", "t ()")
+        term("a", "s")
+        term("a", "t")
     }
 
-    "term with non-existent sort".test { term("a", "s ()") }
+    "term with non-existent sort".test { term("a", "s") }
+
+    "term typed with a dummy".test {
+        sort("s")
+        mm0("term a:s;")
+        mmu("(term a () (s))")
+    }
 
     "term shadowing a def".test {
         sort("s")
-        term("a", "s ()")
-        def("b", "s ()", "a")
-        term("b", "s ()")
+        term("a", "s")
+        def("b", "s", "a")
+        term("b", "s")
     }
 
     // def
     "def shadowing a term".test {
         sort("s")
-        term("a", "s ()")
-        term("b", "s ()")
-        def("a", "s ()", "b")
+        term("a", "s")
+        term("b", "s")
+        def("a", "s", "b")
     }
+
     "recursive def".test {
         sort("s")
-        def("a", "s ()", "a")
+        def("a", "s", "a ", tree="a")
     }
 }
 

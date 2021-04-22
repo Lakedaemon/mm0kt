@@ -9,6 +9,7 @@ class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=nu
 
     override fun register(m: M) {
         when (m) {
+            is M.Human.LineComment -> register(m)
             is M.Human.Delimiters -> {
                 for (delimiter in m.left) delimiters = delimiters.put(delimiter, Delimiter.Left(delimiter))
                 for (delimiter in m.both) delimiters = delimiters.put(delimiter, Delimiter.Both(delimiter))

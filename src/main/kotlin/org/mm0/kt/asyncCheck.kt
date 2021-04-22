@@ -49,14 +49,14 @@ fun ContextBuilder.asyncCheck(mm0s: Sequence<MM0>, mmus: Sequence<MMU>, checker:
             is MMUTheorem -> {
                 checker(current(), mmu.theorem, mmu.binders, mmu.proof)
                 if (!mmu.theorem.isLocal) registerUntil(it0) { mm0 -> if (!isMatch(mmu.theorem, mm0)) error("theorem ${mmu.report()} cannot be matched to ${mm0.report()}") }
+                // yield local stuff
                 register(mmu.theorem)
             }
         }
+        // yield mixed stuff
     }
     /** consume the remaining mm0 statements, if any */
-    registerUntil(it0) { mm0 ->
-        error("no corresponding mmu directive for $mm0")
-    }
+    registerUntil(it0) { mm0 -> error("no corresponding mmu directive for $mm0") }
 }
 
 
@@ -65,6 +65,7 @@ private fun ContextBuilder.registerUntil(it0: Iterator<MM0>, check: ContextBuild
         val mm0 = it0.next()
         //println(mm0.toString())
         when (mm0) {
+            is MM0LineComment -> Unit
             is MM0Delimiters -> register(mm0.delimiters)
             is MM0Coercion -> register(mm0.coercion)
             is MM0Operator -> register(mm0.operator)
@@ -102,9 +103,9 @@ private fun Context.isMatch(def: Definition, mm0: MM0): Boolean {
     val formula = mm0.formula
     if (formula != null) {
         /** check additional dummies for non abstract definition */
-        if (mm0.humanBinders.asSequence().flatMap{ hb-> hb.names.mapNotNull { if (it.startsWith('.')) Pair(it.substring(1), hb.type.sort) else null  } }.toSet() != def.moreDummiesForDef.map{Pair(it.name, it.type.sort)}.toSet()) return false
+        if (mm0.humanBinders.asSequence().flatMap { hb -> hb.names.mapNotNull { if (it.startsWith('.')) Pair(it.substring(1), hb.type.sort) else null } }.toSet() != def.moreDummiesForDef.map { Pair(it.name, it.type.sort) }.toSet()) return false
         val parser = DynamicParser(this)
-        val types = (def.binders + def.moreDummiesForDef) .associate { Pair(it.name as CharSequence, it.type) }
+        val types = (def.binders + def.moreDummiesForDef).associate { Pair(it.name as CharSequence, it.type) }
         val tree = parser.parse(formula, types)
         if (tree != def.tree) error("different formula : \ncharSequence=$formula\nmm0=$tree\nmmu=${def.tree}\ncontext=$this")
     }
@@ -136,7 +137,7 @@ private fun ContextBuilder.isMatch(ax: Assertion, mm0: MM0): Boolean {
     }
 
     val formula = arrows.last()
-    if (formula !is FormulaOrType.Formula || dynamicParser.parse(formula.formula, types) != ax.conclusion) return false.apply{println("form false $formula\nparsed=${dynamicParser.parse((formula as? FormulaOrType.Formula)?.formula?:"gah", types)}")}
+    if (formula !is FormulaOrType.Formula || dynamicParser.parse(formula.formula, types) != ax.conclusion) return false.apply { println("form false $formula\nparsed=${dynamicParser.parse((formula as? FormulaOrType.Formula)?.formula ?: "gah", types)}") }
 
     mm0.formulaTypeBinders.forEach {
         when (it) {
@@ -150,10 +151,12 @@ private fun ContextBuilder.isMatch(ax: Assertion, mm0: MM0): Boolean {
     return ax.binders.isValidMatch(binders) && ax.hypotheses.hypothesesMatch(hypotheses)
 }
 
-private fun List<NamedHypothesis>.hypothesesMatch(hypotheses: List<NamedHypothesis>): Boolean = foldRightIndexed(true) {index, nh, acc -> acc && hypotheses[index].formula == nh.formula}
+private fun List<NamedHypothesis>.hypothesesMatch(hypotheses: List<NamedHypothesis>): Boolean = foldRightIndexed(true) { index, nh, acc -> acc && hypotheses[index].formula == nh.formula }
 
 /** check if exported humanBinder match with binders, and if those are valid*/
-private fun List<HumanBinder>.isHumanValidMatch(binders: List<Binder>): Boolean = asSequence().flatMap { it.names.mapNotNull { s -> if (s.startsWith('.')) null else Binder(it.isBound, s, it.type) } }.toList().isValidMatch(binders)
+fun List<HumanBinder>.toBindersWithoutAdditionnalDummies(): List<Binder> = asSequence().flatMap { it.names.mapNotNull { s -> if (s.startsWith('.')) null else Binder(it.isBound, s, it.type) } }.toList()
+
+private fun List<HumanBinder>.isHumanValidMatch(binders: List<Binder>): Boolean = toBindersWithoutAdditionnalDummies().isValidMatch(binders)
 private fun List<Binder>.isValidMatch(binders: List<Binder>): Boolean {
     val sorted = binders.sortedBy { it.name }
     var lastName = ""
@@ -161,5 +164,5 @@ private fun List<Binder>.isValidMatch(binders: List<Binder>): Boolean {
         if (b.name == lastName) error("duplicate variable names in ${sorted.joinToString(" ") { it.report() }}")
         lastName = b.name
     }
-    return this== binders
+    return this == binders
 }

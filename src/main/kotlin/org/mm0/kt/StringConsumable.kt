@@ -18,6 +18,12 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
         }
     }
 
+    override fun consumeLine(): String {
+        val p = pos
+        while (pos < lim && look() != '\n') pos++
+        return string.substring(p, pos++)
+    }
+
     override fun consumeInt(): Int? {
         var int = 0
         var p = pos

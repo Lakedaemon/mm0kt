@@ -2,6 +2,7 @@ package org.mm0.kt
 
 sealed class M {
     sealed class Human : M() {
+        class LineComment(val string:String):Human()
         data class Delimiters(val left: List<String>, val both: List<String>, val right: List<String>) : Human()
         data class Coercion(val id: String, val coerced: String, val coercedInto: String) : Human()
 

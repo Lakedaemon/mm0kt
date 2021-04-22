@@ -29,26 +29,27 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
             savedDirectivePos = consumable.position()
             /** notations */
             val mm0 = when {
-                skipIf(THEOREM) -> MM0Theorem(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows())
-                skipIf(DEFINITION) -> MM0Definition(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBefore('=', ';')), formula = if (skipIf('=')) formula() else null)
-                skipIf(TERM) -> MM0Term(id = canonicId(), humanBinders = humanBinders(), termArrows())
-                skipIf(AXIOM) -> MM0Axiom(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows())
-                skipIf(PREFIX) -> operator(PREFIX)
-                skipIf(INFIXL) -> operator(INFIXL)
-                skipIf(INFIXR) -> operator(INFIXR)
-                skipIf(NOTATION) -> MM0Notation(Notation(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBeforeSkipping('=')).then('('), constant = formula().then(':'), precedence = (if (skipIf(MAX)) Int.MAX_VALUE else int()).then(')'), notationLiterals = notationLiterals()))
-                skipIf(PURE) -> sort(1)
-                skipIf(STRICT) -> sort(2)
-                skipIf(PROVABLE) -> sort(3)
-                skipIf(FREE) -> sort(4)
-                skipIf(SORT) -> sort(5)
-                skipIf(COERCION) -> MM0Coercion(Coercion(id = canonicId().then(':'), coerced = canonicId().then('>'), coercedInto = canonicId()))
-                skipIf(DELIMITER) -> MM0Delimiters(delimiters())
-                skipIf(INPUT) -> inout(true)
-                skipIf(OUTPUT) -> inout(false)
+                skipIf("--") -> MM0LineComment(LineComment(consumable.consumeLine()))
+                skipIf(THEOREM) -> MM0Theorem(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows()).apply{skip(';')}
+                skipIf(DEFINITION) -> MM0Definition(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBefore('=', ';')), formula = if (skipIf('=')) formula() else null).apply{skip(';')}
+                skipIf(TERM) -> MM0Term(id = canonicId(), humanBinders = humanBinders(), termArrows()).apply{skip(';')}
+                skipIf(AXIOM) -> MM0Axiom(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows()).apply{skip(';')}
+                skipIf(PREFIX) -> operator(PREFIX).apply{skip(';')}
+                skipIf(INFIXL) -> operator(INFIXL).apply{skip(';')}
+                skipIf(INFIXR) -> operator(INFIXR).apply{skip(';')}
+                skipIf(NOTATION) -> MM0Notation(Notation(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBeforeSkipping('=')).then('('), constant = formula().then(':'), precedence = (if (skipIf(MAX)) Int.MAX_VALUE else int()).then(')'), notationLiterals = notationLiterals())).apply{skip(';')}
+                skipIf(PURE) -> sort(1).apply{skip(';')}
+                skipIf(STRICT) -> sort(2).apply{skip(';')}
+                skipIf(PROVABLE) -> sort(3).apply{skip(';')}
+                skipIf(FREE) -> sort(4).apply{skip(';')}
+                skipIf(SORT) -> sort(5).apply{skip(';')}
+                skipIf(COERCION) -> MM0Coercion(Coercion(id = canonicId().then(':'), coerced = canonicId().then('>'), coercedInto = canonicId())).apply{skip(';')}
+                skipIf(DELIMITER) -> MM0Delimiters(delimiters()).apply{skip(';')}
+                skipIf(INPUT) -> inout(true).apply{skip(';')}
+                skipIf(OUTPUT) -> inout(false).apply{skip(';')}
                 else -> parserError("this should not happen")
             }
-            skip(';')
+
             return mm0
         }
     }

@@ -13,8 +13,8 @@ fun parsingPassForBoth() = passBoth("parsingBoth") {
     // mm0 and mmu syntax
 
     // whitespace
-    "space is a valid whitespace".test { sort("s    ") }
-    "line feed is a valid whitespace".test { sort("s\n\n") }
+    "space is a valid whitespace".test { sort("s ") }
+    "line feed is a valid whitespace".test { sort("s\n") }
 
     "empty delimiters".test { both() }
     "empty delimiters".test { leftRight() }
@@ -42,23 +42,21 @@ fun matchingPass() = passBoth("matching") {
     // term
     "same order for binders".test {
         sort("s")
-        term("a", "s ()", "x s ()", "y s ()")
+        term("a", "s", "(x:s)","(y:s)")
     }
     "same order for binders".test {
         sort("s")
         sort("t")
-        term("a", "s ()", "x s ()", "y t ()")
+        term("a", "s", "(x:s)", "(y:t)")
     }
     "same order for binders".test {
         sort("s")
-        mm0("term a (x y: s):s;")
-        mmu("(term a ((x s ())(y s ())) (s ())")
+        term("a", "s", "(x y:s)")
     }
     "same order for binders".test {
         sort("s")
         sort("t")
-        mm0("term a: s > t > s;")
-        mmu("(term a ((y s ())(x t ())) (s ())")
+        term("a", "s > t > s")
     }
 }
 
@@ -68,10 +66,7 @@ fun registeringPass() = passBoth("registering") {
         coercion("c", "s", "s")
     }
 
-    "term typed with a dummy".test {
-        sort("s")
-        term("a", "s")
-    }
+
 
 }
 
