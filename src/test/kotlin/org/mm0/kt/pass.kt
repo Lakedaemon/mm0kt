@@ -20,14 +20,17 @@ fun parsingPassForBoth() = passBoth("parsingBoth") {
     "space is a valid whitespace".test { sort("s ") }
     "line feed is a valid whitespace".test { sort("s\n") }
 
-    "empty delimiters".test { both() }
-    "empty delimiters".test { leftRight() }
+
 
 
 
     // int
     "big int support".test { op("plus", precedence = 2046, constant = "+") }
+
     // delimiters
+    "empty delimiters".test { both() }
+    "empty delimiters".test { leftRight() }
+
     "duplicate delimiters".test { both("(", "(") }
     "duplicate delimiters".test { leftRight("(", "(") }
     "duplicate delimiters".test { leftRight(right = listOf("(", "(")) }
@@ -69,10 +72,9 @@ fun registeringPass() = passBoth("registering") {
         sort("s")
         coercion("c", "s", "s")
     }
-
-
-
 }
+
+fun dynamicParsingPass()= passBoth("dynamic parsing") {}
 
 fun proofCheckingPass() = passBoth("proofChecking") {
     "blank file".test { raw(" \n ") }
@@ -97,5 +99,6 @@ fun pass() {
     parsingPassForBoth()
     matchingPass()
     registeringPass()
+    dynamicParsingPass()
     proofCheckingPass()
 }

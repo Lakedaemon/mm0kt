@@ -36,7 +36,8 @@ fun parsingFailsForBoth() = failBoth("parsingBoth") {
     // whitespace
     "tab is not a valid whitespace".test {
         comment(" whitechar ::= ' ' | '\\n'")
-        sort("s\t") }
+        sort("s\t")
+    }
     "line tabulation is not a valid whitespace".test {
         comment(" whitechar ::= ' ' | '\\n'")
         sort("s\u000B")
@@ -74,15 +75,15 @@ fun parsingFailsForBoth() = failBoth("parsingBoth") {
     }
 
     // formula
-    "dollar in inner formula".test {
+    "dollar cannot appear in formula".test {
         comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
         both("a $ b")
     }
-    "dollar in inner formula".test {
+    "dollar cannot appear in formula".test {
         comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
         leftRight("a $ b")
     }
-    "dollar in inner formula".test {
+    "dollar cannot appear in formula".test {
         comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
         leftRight(right = listOf("a $ b"))
     }
@@ -212,7 +213,9 @@ fun registeringFails() = failBoth("registering") {
     }
 }
 
-fun proofCheckingFail() {}
+fun dynamicParsingFails() = passBoth("dynamic parsing") {}
+
+fun proofCheckingFails() = passBoth("proof checking"){}
 
 fun fail() {
     parsingFailsForMM0()
@@ -220,5 +223,6 @@ fun fail() {
     parsingFailsForBoth()
     matchingFails()
     registeringFails()
-    proofCheckingFail()
+    dynamicParsingFails()
+    proofCheckingFails()
 }
