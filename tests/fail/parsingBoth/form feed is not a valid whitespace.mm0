@@ -1,0 +1,2 @@
+-- whitechar ::= ' ' | '\n'
+sort s;
