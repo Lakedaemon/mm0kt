@@ -1,4 +1,4 @@
 free sort s;
 term f {x:s}:s;
---free means that dummy variables may not be dropped in definitions unless they appear in binding syntax constructors.
+-- free means that dummy variables may not be dropped in definitions unless they appear in binding syntax constructors.
 def y (.x:s): s = $ f x $;

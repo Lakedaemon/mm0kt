@@ -1,5 +1,0 @@
-sort s;
-sort t;
-sort u;
-coercion c: s > t;
-coercion c: s > u;

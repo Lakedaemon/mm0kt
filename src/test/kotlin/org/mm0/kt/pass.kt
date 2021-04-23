@@ -2,7 +2,18 @@ package org.mm0.kt
 
 
 fun parsingPassForMM0() = passMM0("parsingMM0") {
-
+    "math-string".test {
+        comment("math-string ::= '\$' [^\\\$]* '\$'")
+        both()
+        both("""NUL SOH STX ETX EOT ENQ ACK BEL BS HT LF VT FF CR SO SI
+        | DLE DC1 DC2 DC3 DC4 NAK SYN ETB CAN EM SUB ESC FS GS RS US
+        |    ! " # % & ' ( ) * + , - . /
+        |  0 1 2 3 4 5 6 7 8 9 : ; < = > ?
+        |  @ A B C D E F G H I J K L M N O
+        |  P Q R S T U V W X Y Z [ \ ] ^ _
+        |  ` a b c d e f g h i j k l m n o
+        |   p q r s t u v w x y z { | } ~ DEL""".trimMargin())
+    }
 }
 
 fun parsingPassForMMU() = passMMU("parsingMMU") {
@@ -10,26 +21,31 @@ fun parsingPassForMMU() = passMMU("parsingMMU") {
 }
 
 fun parsingPassForBoth() = passBoth("parsingBoth") {
-    "normal id".test {
-        comment("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
-        sort("_I_4M_an_1d")
+    // shipped
+    "id".test {
+        comment("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*", mmu = listOf("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*"))
+        sort("id_1")
+        sort("Id2_")
+        sort("_id3")
     }
     // mm0 and mmu syntax
 
     // whitespace
-    "space is a valid whitespace".test { sort("s ") }
-    "line feed is a valid whitespace".test { sort("s\n") }
-
-
-
+    "whitespace".test {
+        comment("    v-- this is a SPACE", mmu = listOf("     v-- this is a SPACE"))
+        sort("s ")
+    }
+    "whitespace".test {
+        comment("    v-- this is a LINE FEED", mmu = listOf("     v-- this is a LINE FEED"))
+        sort("s\n")
+    }
 
 
     // int
     "big int support".test { op("plus", precedence = 2046, constant = "+") }
 
     // delimiters
-    "empty delimiters".test { both() }
-    "empty delimiters".test { leftRight() }
+
 
     "duplicate delimiters".test { both("(", "(") }
     "duplicate delimiters".test { leftRight("(", "(") }
@@ -49,7 +65,7 @@ fun matchingPass() = passBoth("matching") {
     // term
     "same order for binders".test {
         sort("s")
-        term("a", "s", "(x:s)","(y:s)")
+        term("a", "s", "(x:s)", "(y:s)")
     }
     "same order for binders".test {
         sort("s")
@@ -74,7 +90,7 @@ fun registeringPass() = passBoth("registering") {
     }
 }
 
-fun dynamicParsingPass()= passBoth("dynamic parsing") {}
+fun dynamicParsingPass() = passBoth("dynamic parsing") {}
 
 fun proofCheckingPass() = passBoth("proofChecking") {
     "blank file".test { raw(" \n ") }

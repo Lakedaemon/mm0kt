@@ -59,11 +59,15 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
             val c = string[position]
             val isDigit = c in '0'..'9'
             if (c !in 'a'..'z' && c !in 'A'..'Z' && !isDigit && c != '_' && (c != '.' || !allowDummy)) break
+            // an id cannot start with a digit
             if (isFirstChar && isDigit) return null
             isFirstChar = false
             position++
         }
+        // empty id aren't allowed
         if (position == pos) return null
+        // single _ cannot be an id
+        if (position == pos + 1 && string[pos] == '_') return null
         val res = string.substring(pos, position)
         pos = position
         return res

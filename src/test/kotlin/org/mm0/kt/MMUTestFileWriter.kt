@@ -27,7 +27,7 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
 
 
 
-    override fun comment(vararg strings: String) {}
+    override fun comment(vararg strings: String, mmu:List<String>) = mmu.forEach { this w COMMENT s it w "\n" }
     override fun both(vararg both: String) = register(M.Human.Delimiters(listOf(), both.toList(), listOf()))
     override fun leftRight(vararg left: String, right: List<String>) = register(M.Human.Delimiters(left.toList(), listOf(), right))
     override fun sort(id: String, isPure: Boolean, isStrict: Boolean, isProvable: Boolean, isFree: Boolean) {

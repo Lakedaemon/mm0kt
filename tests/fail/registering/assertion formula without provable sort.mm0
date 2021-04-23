@@ -1,4 +1,4 @@
 sort s;
 term a :s;
---provable means that the sort is a thing that can be "proven". All formulas appearing in axioms and theorems (between $) must have a provable sort
+-- provable means that the sort is a thing that can be "proven". All formulas appearing in axioms and theorems (between $) must have a provable sort
 axiom b (x:s): $ a $;

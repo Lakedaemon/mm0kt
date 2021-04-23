@@ -10,9 +10,17 @@ This repository implements in (pure) Kotlin:
 - [x] a (mm0/mmu) one-pass proofchecker
 - [ ] a (pipelinable) patcher for set.mm.mm0 and set.mm.mmu
 - [ ] a patch mm0-ifying set.mm
-- [ ] a mm0 vs mmu test suite (and semi-automatic test creation methods)
+- [x] a mm0 vs mmu test suite creation framework
+And provide positive and negative tests in different folders for
+- [ ] mm0 parsers (folder: parsingMM0 and parsingBoth)
+- [ ] mmu parsers (folder: parsingMMU and parsingBoth)
+- [ ] mm0 vs mmu proof checkers (with different stages)
+  - [ ] matching mm0 statements and mmu directives (folder: matching)
+  - [ ] registering  mm0 statements and mmu directives (folder: registering)
+  - [ ] parsing with a dynamic parser (folder: dynamicParsing)
+  - [ ] proof-checking a (mm0, mmu) pair (folder:proofchecking)
 
-# Goals 
+# Goals
 
  - [ ] accurate and correct 
    - [x] mm0 parser
@@ -51,7 +59,11 @@ This repository implements in (pure) Kotlin:
 - build stuff on the binary mmb spec (we will do that much later)
 - absolute performance (we wouldn't use parsing and the text based mmu spec otherwise)
 - build the shortest proofs possible, in the mm0ifying process
- 
+
+# Test-coverage
+
+- [x] chars ()
+- [x] ids (1+ 5-)
 
 # TODO : 
 - implement Input and Output support

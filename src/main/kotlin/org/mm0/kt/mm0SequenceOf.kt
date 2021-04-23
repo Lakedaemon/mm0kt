@@ -29,7 +29,7 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
             savedDirectivePos = consumable.position()
             /** notations */
             val mm0 = when {
-                skipIf("--") -> MM0LineComment(LineComment(consumable.consumeLine()))
+                skipIf(COMMENT) -> MM0LineComment(LineComment.MM0(consumable.consumeLine()))
                 skipIf(THEOREM) -> MM0Theorem(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows()).apply{skip(';')}
                 skipIf(DEFINITION) -> MM0Definition(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBefore('=', ';')), formula = if (skipIf('=')) formula() else null).apply{skip(';')}
                 skipIf(TERM) -> MM0Term(id = canonicId(), humanBinders = humanBinders(), termArrows()).apply{skip(';')}

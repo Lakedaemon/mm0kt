@@ -15,7 +15,7 @@ class MM0TestFileWriter(path: String) : TestWriterBoth, Closeable {
         fW.close()
     }
 
-    override fun comment(vararg strings: String) = strings.forEach { this w "--" w it w "\n" }
+    override fun comment(vararg mm0: String, mmu:List<String>) = mm0.forEach { this w COMMENT s it w "\n" }
     override fun both(vararg both: String) = this w DELIMITER s "$" s both.joinToString(" ") s "$" ww ";\n"
     override fun leftRight(vararg left: String, right: List<String>) = this w DELIMITER s "$" s left.joinToString(" ") s "$" s right.joinToString(" ", prefix = " $ ", postfix = " $ ") ww ";\n"
     override fun sort(id: String, isPure: Boolean, isStrict: Boolean, isProvable: Boolean, isFree: Boolean) = this w PURE.ifs(isPure) w STRICT.ifs(isStrict) w PROVABLE.ifs(isProvable) w FREE.ifs(isFree) w SORT s id ww ";\n"

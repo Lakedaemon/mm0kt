@@ -62,10 +62,11 @@ private class MMUSequence(private val consumable: Consumable, private val canoni
 
     override fun iterator(): Iterator<MMU> = MMUIterator()
 
-    private inner class MMUIterator() : Iterator<MMU> {
+    private inner class MMUIterator : Iterator<MMU> {
         override fun hasNext(): Boolean = !consumable.isConsumed()
 
         override fun next(): MMU {
+            if (skipIf(COMMENT)) return MMULineComment(M.Human.LineComment.MMU(consumable.consumeLine())).apply { skipWhite() }
             savedDirectivePos = consumable.position()
             skip('(')
             val isLocal = when {

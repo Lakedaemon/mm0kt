@@ -17,6 +17,16 @@ fun parsingFailsForMM0() = failMM0("parsingMM0") {
         term("a", "s")
         def("d", "s", null, "(.x:s)", tree = "a")
     }
+
+    // formula
+    "bad-math-string".test {
+        comment("        --V one \$ too many")
+        both("$")
+    }
+    "bad-math-string".test {
+        comment("        --V one \$ too many")
+        leftRight("$")
+    }
 }
 
 fun parsingFailsForMMU() = failMMU("parsingMMU") {
@@ -26,66 +36,79 @@ fun parsingFailsForMMU() = failMMU("parsingMMU") {
 
 }
 
-fun parsingFailsForBoth() = failBoth("parsingBoth") {
-    // ascii
-    "chars cannot be outside the ascii charset".test {
-        sort("s\u0085") }
-    "chars cannot be outside the ascii charset".test { sort("s\u00A0") }
 
-    // whitespace
-    "whitespaces cannot be tabs".test {
-        comment(" whitechar ::= ' ' | '\\n'")
+
+
+fun parsingFailsForBoth() = failBoth("parsingBoth") {
+    // shipped
+    "chars cannot be outside a subset of the ascii charset".test {
+        comment("lexeme ::= symbol | identifier | number | math-string",
+                "symbol ::= '*' | '.' | ':' | ';' | '(' | ')' | '>' | '{' | '}' | '=' | '_'",
+                "identifier ::= [a-zA-Z_][a-zA-Z0-9_]*",
+                "number ::= 0 | [1-9][0-9]*",
+                "math-string ::= '$' [^\$]* '$'", mmu = listOf("Whitespace is ignored except to separate tokens",
+                                                               "Line comments are written --comment and extend until the next \\n; line comments act like whitespace",
+                                                               "An identifier token matches [0-9a-zA-Z_:]+",
+                                                               "Characters ( ) are single character symbol tokens",
+                                                               "Anything else is forbidden"))
+        sort("s\u0085")
+    }
+    "chars cannot be outside a subset of the ascii charset".test {
+        comment("lexeme ::= symbol | identifier | number | math-string",
+                "symbol ::= '*' | '.' | ':' | ';' | '(' | ')' | '>' | '{' | '}' | '=' | '_'",
+                "identifier ::= [a-zA-Z_][a-zA-Z0-9_]*",
+                "number ::= 0 | [1-9][0-9]*",
+                "math-string ::= '$' [^\$]* '$'", mmu = listOf("Whitespace is ignored except to separate tokens",
+                                                               "Line comments are written --comment and extend until the next \\n; line comments act like whitespace",
+                                                               "An identifier token matches [0-9a-zA-Z_:]+",
+                                                               "Characters ( ) are single character symbol tokens",
+                                                               "Anything else is forbidden"))
+        sort("s\u00A0")
+    }
+
+    // shipped
+    // chars
+    "bad-whitespace".test {
+        comment("    v-- this is a TAB", mmu=listOf("     v-- this is a TAB"))
         sort("s\t")
     }
-    "whitespaces cannot be line tabulations".test {
-        comment(" whitechar ::= ' ' | '\\n'")
+    "bad-whitespace".test {
+        comment("    v-- this is a LINE TABULATION", mmu=listOf("     v-- this is a LINE TABULATION"))
         sort("s\u000B")
     }
-    "whitespaces cannot be form feeds".test {
-        comment(" whitechar ::= ' ' | '\\n'")
+    "bad-whitespace".test {
+        comment("    v-- this is a FORM FEED", mmu=listOf("     v-- this is a FORM FEED"))
         sort("s\u000C")
     }
-    "whitespaces cannot be carriage returns".test {
-        comment(" whitechar ::= ' ' | '\\n'")
+    "bad-whitespace".test {
+        comment("    v-- this is a CARRIAGE RETURN", mmu=listOf("     v-- this is a CARRIAGE RETURN"))
         sort("s\u000D")
     }
 
-
+    // shipped
     // id
-    "ids cannot be empty".test {
-        comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+    "bad-id".test {
+        comment(" empty id", mmu=listOf(" empty id"))
         sort("")
     }
-    "ids cannot be blank".test {
-        comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+    "bad-id".test {
+        comment(" blank id", mmu=listOf(" blank id"))
         sort(" \n ")
     }
-    "ids cannot start with a digit".test {
-        comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+    "bad-id".test {
+        comment(" id starting with a digit", mmu=listOf(" id starting with a digit"))
         sort("0")
     }
-    "ids may only have ascii digits, letters or underscores".test {
-        comment("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
+    "bad-id".test {
+        comment("id with forbidden char -", mmu=listOf("id with forbidden char -"))
         sort("sot-")
     }
-    "ids cannot be a single underscore".test {
-        comment(" the single character _ is not an identifier")
+    "bad-id".test {
+        comment(" id that is a single underscore _", mmu=listOf(" id that is a single underscore _"))
         sort("_")
     }
 
-    // formula
-    "formulas cannot contain dollars".test {
-        comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
-        both("$")
-    }
-    "formulas cannot contain dollars".test {
-        comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
-        leftRight("$")
-    }
-    "formulas cannot contain dollars".test {
-        comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
-        leftRight(right = listOf("$"))
-    }
+
 
 
 
@@ -146,25 +169,24 @@ fun registeringFails() = failBoth("registering") {
         term("a", "s")
         comment("""provable means that the sort is a thing that can be "proven". All formulas appearing in axioms and theorems (between $) must have a provable sort""")
         axiom("b", "$ a $", "(x:s)")
-        //mm0("axiom b (x:s): $ a $;")
     }
 
     "term typed with a pure sort".test {
         sort("s", isFree = true)
         term("f", "s", "{x:s}")
         comment("free means that dummy variables may not be dropped in definitions unless they appear in binding syntax constructors.")
-        def("y", "s", "f x", "(.x:s)"/*, tree="(f x)"*/)
+        def("y", "s", "f x", "(.x:s)")
     }
 
     // coercion
     // GOT ME
-    "duplicated ids for coercion".test {
+    /*"duplicated ids for coercion".test {
         sort("s")
         sort("t")
         sort("u")
         coercion("c", "s", "t")
         coercion("c", "s", "u")
-    }
+    }*/
 
 
     "not unique coercion path".test {
@@ -214,7 +236,7 @@ fun registeringFails() = failBoth("registering") {
 
 fun dynamicParsingFails() = passBoth("dynamic parsing") {}
 
-fun proofCheckingFails() = passBoth("proof checking"){}
+fun proofCheckingFails() = passBoth("proof checking") {}
 
 fun fail() {
     parsingFailsForMM0()

@@ -12,7 +12,7 @@ interface Context {
     fun definition(id: CharSequence): M.Computer.Definition?
     fun assertion(id : CharSequence):M.Computer.Assertion?
 
-
+    fun lineComments(forMM0:Boolean):List<M.Human.LineComment>
     fun typeFor(id:CharSequence):Type?
 
     class Diff(val context1: Context, val context2: Context) :Context by context2 {

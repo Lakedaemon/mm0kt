@@ -21,7 +21,7 @@ package org.mm0.kt
  * */
 interface TestWriter {
     /** delimiters */
-    fun comment(vararg strings:String)
+    fun comment(vararg mm0:String, mmu:List<String> =listOf())
     fun both(vararg both: String)
     fun leftRight(vararg left: String, right: List<String> = listOf())
     fun sort(id: String="s", isPure: Boolean = false, isStrict: Boolean = false, isProvable: Boolean = false, isFree: Boolean = false)
