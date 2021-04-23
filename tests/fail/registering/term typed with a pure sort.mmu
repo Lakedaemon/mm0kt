@@ -1,2 +1,2 @@
-(sort s pure)
+(sort spure )
 (term a () (s ()))

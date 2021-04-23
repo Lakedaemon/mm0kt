@@ -1,1 +1,1 @@
-prefix plus : $ + $ prec 2046;
+prefix plus: $ + $ prec 2046;

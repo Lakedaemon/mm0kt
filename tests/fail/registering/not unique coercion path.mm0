@@ -1,6 +1,6 @@
 sort s;
 sort t;
 sort u;
-coercion c1 : s > t ;
-coercion c2 : t > u ;
-coercion c3 : s > u ;
+coercion c1: s > t;
+coercion c2: t > u;
+coercion c3: s > u;

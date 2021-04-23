@@ -1,2 +1,2 @@
 sort s;
- def a  : s = $ a  $;
+def a : s = $ a  $;

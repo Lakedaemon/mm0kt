@@ -24,31 +24,15 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
         fW.close()
     }
 
-    private infix fun MMUTestFileWriter.w(s: CharSequence): MMUTestFileWriter = apply { fW.append(s) }
-    private infix fun MMUTestFileWriter.s(s: CharSequence): MMUTestFileWriter = apply {
-        fW.append(" ")
-        fW.append(s)
-    }
 
-    private infix fun MMUTestFileWriter.ww(end: CharSequence) {
-        this w end
-    }
 
-    private fun register(m: M) {
-        registeringQueue.add(m)
-    }
 
     override fun comment(vararg strings: String) {}
     override fun both(vararg both: String) = register(M.Human.Delimiters(listOf(), both.toList(), listOf()))
     override fun leftRight(vararg left: String, right: List<String>) = register(M.Human.Delimiters(left.toList(), listOf(), right))
     override fun sort(id: String, isPure: Boolean, isStrict: Boolean, isProvable: Boolean, isFree: Boolean) {
         register(M.Computer.Sort(id, isPure = isPure, isStrict = isStrict, isProvable = isProvable, isFree = isFree))
-        this w "($SORT" s id
-        if (isPure) this s PURE
-        if (isStrict) this s STRICT
-        if (isProvable) this s PROVABLE
-        if (isFree) this s FREE
-        this ww ")\n"
+        this w "(" w SORT s id w PURE.ifs(isPure) w STRICT.ifs(isStrict) w PROVABLE.ifs(isProvable) w FREE.ifs(isFree) w ")\n"
     }
 
     override fun coercion(id: String, coerced: String, coercedInto: String) = register(M.Human.Coercion(id, coerced, coercedInto))
@@ -61,7 +45,7 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
         val binders = if (termArrows.size > 1) termArrows.dropLast(1).map { Binder(false, underscoreCS, it) } else trueHumanBinders.toBindersWithoutAdditionnalDummies()
         val type = termArrows.last()
         register(M.Computer.Term(id, binders, type))
-        this w "(" w TERM s id s "(" w binders.joinToString(" ") { it.mmu() } w ")" s "(" w type.mmu() ww "))\n"
+        this w "(" w TERM s id s "(" w binders.joinToString(" ") { it.mmu() } w ")" s "(" w type.mmu() w "))\n"
     }
 
     override fun def(id: String, type: String, formula: String?, vararg humanBinders: String, tree: String, isLocal: Boolean) {
@@ -75,8 +59,70 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
 
         val trueType = type.toType2()
         register(M.Computer.Definition(id, isLocal, binders, trueType, additionalDummies, trueTree))
-        this w "(" w DEFINITION s id s "(" w binders.joinToString(" ") w ")" s "(" w trueType.mmu() w ")" s "(" w additionalDummies.joinToString(" ") { "(${it.name} ${it.type.sort})" } w ")" s trueTree.toMmuTree() ww ")\n"
+        this w "(" w LOCAL.ifs(isLocal) w DEFINITION s id s "(" w binders.joinToString(" ") w ")" s "(" w trueType.mmu() w ")" s "(" w additionalDummies.joinToString(" ") { "(${it.name} ${it.type.sort})" } w ")" s trueTree.toMmuTree() w ")\n"
     }
+
+    override fun axiom(id: String, arrows: String, vararg formulaTypeBinders: String) {
+        val parser = parser()
+
+        val hypotheses = mutableListOf<NamedHypothesis>()
+
+        val trueArrows = arrows.arrows()
+        val trueFormulaTypeBinders = formulaTypeBinders.map { it.formulaTypeBinder() }
+        val binders = trueFormulaTypeBinders.flatMap { ftb ->
+            ftb.names.mapNotNull { s ->
+                if (ftb is FormulaTypeBinder.Type && !s.startsWith('.')) Binder(ftb.isBound, s, ftb.type) else null
+            }
+        }
+        val types = binders.associate { Pair(it.name as CharSequence, it.type) }
+        trueFormulaTypeBinders.filterIsInstance<FormulaTypeBinder.Formula>().forEach { ftb ->
+            val tree = parser.parse(ftb.formula, types)
+            ftb.names.forEach { s -> hypotheses.add(NamedHypothesis(s, tree)) }
+        }
+        // what to do with arrows that are type ?
+        trueArrows.dropLast(1).forEachIndexed { index, formulaOrType -> if (formulaOrType is FormulaOrType.Formula) hypotheses.add(NamedHypothesis(underscoreCS + index, parser.parse(formulaOrType.formula, types))) }
+
+
+        this w "(" w AXIOM s id s "(" w binders.joinToString(" ") { it.mmu() } w ") (" w hypotheses.joinToString(" ") { it.formula.toMmuTree() } w ")" s parser.parse((trueArrows.last() as FormulaOrType.Formula).formula, types).toMmuTree() w ")\n"
+    }
+
+    override fun theorem(id: String, arrows: String, vararg formulaTypeBinders: String, proof:String, isLocal:Boolean) {
+        val parser = parser()
+
+        val hypotheses = mutableListOf<NamedHypothesis>()
+
+        val trueArrows = arrows.arrows()
+        val trueFormulaTypeBinders = formulaTypeBinders.map { it.formulaTypeBinder() }
+        val binders = trueFormulaTypeBinders.flatMap { ftb ->
+            ftb.names.mapNotNull { s ->
+                if (ftb is FormulaTypeBinder.Type && !s.startsWith('.')) Binder(ftb.isBound, s, ftb.type) else null
+            }
+        }
+        val dummies = trueFormulaTypeBinders.flatMap {ftb -> ftb.names.mapNotNull { s -> if (ftb is FormulaTypeBinder.Type && s.startsWith('.')) Binder(true, s, ftb.type) else null } }
+
+        val types = binders.associate { Pair(it.name as CharSequence, it.type) }
+        trueFormulaTypeBinders.filterIsInstance<FormulaTypeBinder.Formula>().forEach { ftb ->
+            val tree = parser.parse(ftb.formula, types)
+            ftb.names.forEach { s -> hypotheses.add(NamedHypothesis(s, tree)) }
+        }
+        // what to do with arrows that are type ?
+        trueArrows.dropLast(1).forEachIndexed { index, formulaOrType -> if (formulaOrType is FormulaOrType.Formula) hypotheses.add(NamedHypothesis(underscoreCS + index, parser.parse(formulaOrType.formula, types))) }
+
+        this w "(" w LOCAL.ifs(isLocal) w THEOREM s id s "(" w binders.joinToString(" ") { it.mmu() } w ") (" w hypotheses.joinToString(" ") { it.formula.toMmuTree() } w ")" s parser.parse((trueArrows.last() as FormulaOrType.Formula).formula, types).toMmuTree() s "(" w dummies.joinToString(" ") {it.mmu()} w ")" s proof w ")\n"
+    }
+
+    private fun String.ifs(boolean:Boolean) :String = if (boolean) "$this " else ""
+
+    private infix fun MMUTestFileWriter.w(s: CharSequence): MMUTestFileWriter = apply { fW.append(s) }
+    private infix fun MMUTestFileWriter.s(s: CharSequence): MMUTestFileWriter = apply {
+        fW.append(" ")
+        fW.append(s)
+    }
+
+    private fun register(m: M) {
+        registeringQueue.add(m)
+    }
+
 
     private fun Consumable.tree(): StringTree {
         if (!consumeIf('(')) return StringTree(consumeId(false)?.toString() ?: error("cannot parse $this"), listOf())
@@ -136,29 +182,8 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
     }
 
 
-    override fun axiom(id: String, arrows: String, vararg formulaTypeBinders: String) {
-        val parser = parser()
-
-        val hypotheses = mutableListOf<NamedHypothesis>()
-
-        val trueArrows = arrows.arrows()
-        val trueFormulaTypeBinders = formulaTypeBinders.map { it.formulaTypeBinder() }
-        val binders = trueFormulaTypeBinders.flatMap { ftb ->
-            ftb.names.mapNotNull { s ->
-                if (ftb is FormulaTypeBinder.Type && !s.startsWith('.')) Binder(ftb.isBound, s, ftb.type) else null
-            }
-        }
-        val types = binders.associate { Pair(it.name as CharSequence, it.type) }
-        trueFormulaTypeBinders.filterIsInstance<FormulaTypeBinder.Formula>().forEach { ftb ->
-            val tree = parser.parse(ftb.formula, types)
-            ftb.names.forEach { s -> hypotheses.add(NamedHypothesis(s, tree)) }
-        }
-        // what to do with arrows that are type ?
-        trueArrows.dropLast(1).forEachIndexed { index, formulaOrType -> if (formulaOrType is FormulaOrType.Formula) hypotheses.add(NamedHypothesis(underscoreCS + index, parser.parse(formulaOrType.formula, types))) }
 
 
-        this w "(" w AXIOM s id s "(" w binders.joinToString(" ") { it.mmu() } w ") (" w hypotheses.joinToString(" ") { it.formula.toMmuTree() } w ")" s parser.parse((trueArrows.last() as FormulaOrType.Formula).formula, types).toMmuTree() ww ")\n"
-    }
 
     override fun raw(string: String) = write(string)
     override fun mm0(string: String) {}

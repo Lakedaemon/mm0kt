@@ -28,11 +28,13 @@ interface TestWriter {
     fun coercion(id: String = "id${idCount++}", coerced: String, coercedInto: String)
     fun term(id: String  = "id${idCount++}", arrows: String ="s", vararg humanBinders: String)
     fun op(id: String = "id${idCount++}", constant: String ="+", precedence: Int=10, opType: String = PREFIX)
-    // todo infer tree from formula
+
     fun def(id: String = "id${idCount++}", type: String = "s", formula: String?, vararg humanBinders: String, tree:String=formula?:"", isLocal: Boolean=false)
+    fun axiom(id:String= "id${idCount++}", arrows:String, vararg formulaTypeBinders:String)
+    fun theorem(id: String, arrows: String, vararg formulaTypeBinders: String, proof:String, isLocal:Boolean=false)
 
     /** standardize on mm0*/
-    fun axiom(id:String= "id${idCount++}", arrows:String, vararg formulaTypeBinders:String)
+
 
     fun raw(string:String)
     companion object {

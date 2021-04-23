@@ -2,17 +2,17 @@ package org.mm0.kt
 
 fun parsingFailsForMM0() = failMM0("parsingMM0") {
     // int
-    "negative int".test {
+    "ints cannot be negative".test {
         comment("A lexeme is either one of the symbols, an identifier, a number (nonnegative integer), or a math string : number ::= 0 | [1-9][0-9]*")
         op("plus", precedence = -1, constant = "+")
     }
 
-    "int prefixed with 0".test {
+    "int cannot be prefixed with zeros".test {
         comment("number ::= 0 | [1-9][0-9]*")
         raw("prefix p : $+$ prec 01;")
     }
 
-    "abstract def with declared dummies".test {
+    "abstract definitions cannot be declared  with dummies".test {
         sort("s")
         term("a", "s")
         def("d", "s", null, "(.x:s)", tree = "a")
@@ -28,64 +28,63 @@ fun parsingFailsForMMU() = failMMU("parsingMMU") {
 
 fun parsingFailsForBoth() = failBoth("parsingBoth") {
     // ascii
-    "next line is not ascii".test {
-        sort("s\u0085")
-    }
-    "no-break-space is not ascii".test { sort("s\u00A0") }
+    "chars cannot be outside the ascii charset".test {
+        sort("s\u0085") }
+    "chars cannot be outside the ascii charset".test { sort("s\u00A0") }
 
     // whitespace
-    "tab is not a valid whitespace".test {
+    "whitespaces cannot be tabs".test {
         comment(" whitechar ::= ' ' | '\\n'")
         sort("s\t")
     }
-    "line tabulation is not a valid whitespace".test {
+    "whitespaces cannot be line tabulations".test {
         comment(" whitechar ::= ' ' | '\\n'")
         sort("s\u000B")
     }
-    "form feed is not a valid whitespace".test {
+    "whitespaces cannot be form feeds".test {
         comment(" whitechar ::= ' ' | '\\n'")
         sort("s\u000C")
     }
-    "carriage return is not a valid whitespace".test {
+    "whitespaces cannot be carriage returns".test {
         comment(" whitechar ::= ' ' | '\\n'")
         sort("s\u000D")
     }
 
 
     // id
-    "an id cannot be empty".test {
+    "ids cannot be empty".test {
         comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
         sort("")
     }
-    "an id cannot be blank".test {
+    "ids cannot be blank".test {
         comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
         sort(" \n ")
     }
-    "an id cannot start with digit".test {
+    "ids cannot start with a digit".test {
         comment(" identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
         sort("0")
     }
-    "bad char in id".test {
+    "ids may only have ascii digits, letters or underscores".test {
         comment("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*")
         sort("sot-")
     }
-    "a single underscore is not an id".test {
+    "ids cannot be a single underscore".test {
         comment(" the single character _ is not an identifier")
         sort("_")
     }
 
     // formula
-    "dollar cannot appear in formula".test {
+    "formulas cannot contain dollars".test {
         comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
-        both("a $ b")
+        both("$")
     }
-    "dollar cannot appear in formula".test {
+    "formulas cannot contain dollars".test {
         comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
-        leftRight("a $ b")
+        leftRight("$")
     }
-    "dollar cannot appear in formula".test {
+    "formulas cannot contain dollars".test {
         comment("Inside a math string \$ cannot appear : math-string ::= '\$' [^\\\$]* '\$'")
-        leftRight(right = listOf("a $ b"))
+        leftRight(right = listOf("$"))
     }
 
 
