@@ -1,6 +1,6 @@
 package org.mm0.kt
 
-class ContextImpl(private val assertions: STree<M.Computer.Assertion>?, private val comp: STree<M.Computer>?, private val sorts: STree<M.Computer.Sort>?, private val human: STree<M.Human>?, override val delimiters: STree<Delimiter>?, private val directCoercions: STree<STree<List<M.Human.Coercion>>>?, private val mm0Comments:List<M.Human.LineComment>, private val mmuComments:List<M.Human.LineComment>) : Context {
+class ContextImpl(private val assertions: STree<M.Computer.Assertion>?, private val comp: STree<M.Computer>?, private val sorts: STree<M.Computer.Sort>?, private val human: STree<M.Human>?, override val delimiters: STree<Delimiter>?, private val directCoercions: STree<STree<List<M.Human.Coercion>>>?) : Context {
     override fun operator(constant: CharSequence): M.Human.Operator? = human.find(constant) as? M.Human.Operator
     override fun notation(constant: CharSequence): M.Human.Notation? = human.find(constant) as? M.Human.Notation
     override fun directCoercion(actual: CharSequence, expected: CharSequence): List<M.Human.Coercion>? = directCoercions.find(actual).find(expected)
@@ -16,5 +16,4 @@ class ContextImpl(private val assertions: STree<M.Computer.Assertion>?, private 
         }
     } ?: (human.find(id) as? M.Human.Notation)?.type
 
-    override fun lineComments(forMM0:Boolean):List<M.Human.LineComment> = if (forMM0) mm0Comments else mmuComments
 }

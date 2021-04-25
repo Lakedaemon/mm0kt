@@ -40,7 +40,6 @@ fun ContextBuilder.asyncCheck(mm0s: Sequence<MM0>, mmus: Sequence<MMU>, checker:
     for (mmu in mmus) {
         //println("$mmu")
         when (mmu) {
-            is MMULineComment -> register(mmu.lineComment)
             is MMUSort -> registerUntil(it0) { mm0 -> if (isMatch(mmu.sort, mm0)) register(mmu.sort) else error("sort ${mmu.report()} cannot be matched to ${mm0.report()}") }
             is MMUTerm -> registerUntil(it0) { mm0 -> if (isMatch(mmu.term, mm0)) register(mmu.term) else error("term ${mmu.report()} cannot be matched to ${mm0.report()}") }
             is MMUInput -> registerUntil(it0) { mm0 -> if (isMatch(mmu.input, mm0)) Unit else error("input ${mmu.report()} cannot be matched to ${mm0.report()}") }
@@ -66,7 +65,6 @@ private fun ContextBuilder.registerUntil(it0: Iterator<MM0>, check: ContextBuild
         val mm0 = it0.next()
         //println(mm0.toString())
         when (mm0) {
-            is MM0LineComment -> register(mm0.lineComment)
             is MM0Delimiters -> register(mm0.delimiters)
             is MM0Coercion -> register(mm0.coercion)
             is MM0Operator -> register(mm0.operator)

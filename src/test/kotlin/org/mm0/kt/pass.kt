@@ -14,6 +14,15 @@ fun parsingPassForMM0() = passMM0("parsingMM0") {
         |  ` a b c d e f g h i j k l m n o
         |   p q r s t u v w x y z { | } ~ DEL""".trimMargin())
     }
+
+    // int
+    "int".test {
+        comment("int number ::= 0 | [1-9][0-9]*", "Verifiers should support precedences up to at least 2^11 - 2 = 2046")
+        op("a", precedence = 0, constant = "+")
+        op("b", precedence = 2046, constant = "*")
+        op("c", precedence = 1875, constant = "/")
+        op("d", precedence = 39, constant = "-")
+    }
 }
 
 fun parsingPassForMMU() = passMMU("parsingMMU") {
@@ -21,6 +30,12 @@ fun parsingPassForMMU() = passMMU("parsingMMU") {
 }
 
 fun parsingPassForBoth() = passBoth("parsingBoth") {
+    "comment".test {
+        raw(" --  <-- comment doesn't start the line\n")
+        mm0("sort \n-- comment inside a statement\ns;")
+        mmu("(sort \n-- comment inside a directive\ns)")
+    }
+
     // shipped
     "id".test {
         comment("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*", mmu = listOf("identifier ::= [a-zA-Z_][a-zA-Z0-9_]*"))
@@ -36,13 +51,10 @@ fun parsingPassForBoth() = passBoth("parsingBoth") {
         sort("s ")
     }
     "whitespace".test {
-        comment("    v-- this is a LINE FEED", mmu = listOf("     v-- this is a LINE FEED"))
+        comment("    v-- this is a NEWLINE", mmu = listOf("     v-- this is a NEWLINE"))
         sort("s\n")
     }
 
-
-    // int
-    "big int support".test { op("plus", precedence = 2046, constant = "+") }
 
     // delimiters
 
@@ -53,14 +65,24 @@ fun parsingPassForBoth() = passBoth("parsingBoth") {
 }
 
 fun matchingPass() = passBoth("matching") {
-    // should I do all 16 possibilities ?
-    "sort".test { sort("s") }
-    "sort".test { sort("s", isPure = true) }
-    "sort".test { sort("s", isProvable = true) }
-    "sort".test { sort("s", isStrict = true) }
-    "sort".test { sort("s", isFree = true) }
-    "sort".test { sort("s", isFree = true, isStrict = true) }
-
+    "sort".test {
+        sort("s0", isPure = false, isStrict = false, isProvable = false, isFree = false)
+        sort("s1", isPure = false, isStrict = false, isProvable = false, isFree = true)
+        sort("s2", isPure = false, isStrict = false, isProvable = true, isFree = false)
+        sort("s3", isPure = false, isStrict = false, isProvable = true, isFree = true)
+        sort("s4", isPure = false, isStrict = true, isProvable = false, isFree = false)
+        sort("s5", isPure = false, isStrict = true, isProvable = false, isFree = true)
+        sort("s6", isPure = false, isStrict = true, isProvable = true, isFree = false)
+        sort("s7", isPure = false, isStrict = true, isProvable = true, isFree = true)
+        sort("s8", isPure = true, isStrict = false, isProvable = false, isFree = false)
+        sort("s9", isPure = true, isStrict = false, isProvable = false, isFree = true)
+        sort("s10", isPure = true, isStrict = false, isProvable = true, isFree = false)
+        sort("s11", isPure = true, isStrict = false, isProvable = true, isFree = true)
+        sort("s12", isPure = true, isStrict = true, isProvable = false, isFree = false)
+        sort("s13", isPure = true, isStrict = true, isProvable = false, isFree = true)
+        sort("s14", isPure = true, isStrict = true, isProvable = true, isFree = false)
+        sort("s15", isPure = true, isStrict = true, isProvable = true, isFree = true)
+    }
 
     // term
     "same order for binders".test {

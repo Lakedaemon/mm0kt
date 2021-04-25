@@ -53,7 +53,7 @@ import org.mm0.kt.M.Computer.Assertion.*
  * read stuff as a charStream, with local buffer structure ?  */
 
 /** string must only hold ascii  chars */
-fun mmuSequenceOf(string: String, canonizer: Canonizer): Sequence<MMU> = MMUSequence(StringConsumable(string), canonizer)
+fun mmuSequenceOf(string: String, canonizer: Canonizer): Sequence<MMU> = MMUSequence(StringConsumable(string, recordComments = false), canonizer)
 
 private class MMUSequence(private val consumable: Consumable, private val canonizer: Canonizer) : Sequence<MMU> {
     init {
@@ -66,7 +66,6 @@ private class MMUSequence(private val consumable: Consumable, private val canoni
         override fun hasNext(): Boolean = !consumable.isConsumed()
 
         override fun next(): MMU {
-            if (skipIf(COMMENT)) return MMULineComment(M.Human.LineComment.MMU(consumable.consumeLine())).apply { skipWhite() }
             savedDirectivePos = consumable.position()
             skip('(')
             val isLocal = when {

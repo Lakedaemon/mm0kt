@@ -1,2 +1,0 @@
--- A lexeme is either one of the symbols, an identifier, a number (nonnegative integer), or a math string : number ::= 0 | [1-9][0-9]*
-prefix plus: $ + $ prec -1;

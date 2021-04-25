@@ -4,7 +4,6 @@ import org.mm0.kt.M.Computer.*
 import org.mm0.kt.M.Computer.Assertion.*
 
 sealed class MMU {
-    class MMULineComment(val lineComment: M.Human.LineComment): MMU()
     class MMUSort(val sort:Sort) : MMU()
     class MMUTerm(val term:Term) : MMU()
     class MMUDefinition(val definition:Definition):MMU()

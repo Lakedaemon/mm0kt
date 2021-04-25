@@ -32,7 +32,7 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
     override fun leftRight(vararg left: String, right: List<String>) = register(M.Human.Delimiters(left.toList(), listOf(), right))
     override fun sort(id: String, isPure: Boolean, isStrict: Boolean, isProvable: Boolean, isFree: Boolean) {
         register(M.Computer.Sort(id, isPure = isPure, isStrict = isStrict, isProvable = isProvable, isFree = isFree))
-        this w "(" w SORT s id w PURE.ifs(isPure) w STRICT.ifs(isStrict) w PROVABLE.ifs(isProvable) w FREE.ifs(isFree) w ")\n"
+        this w "(" w SORT s id s PURE.ifs(isPure) w STRICT.ifs(isStrict) w PROVABLE.ifs(isProvable) w FREE.ifs(isFree) w ")\n"
     }
 
     override fun coercion(id: String, coerced: String, coercedInto: String) = register(M.Human.Coercion(id, coerced, coercedInto))
@@ -42,7 +42,7 @@ class MMUTestFileWriter(path: String) : TestWriterBoth, Closeable {
         val trueHumanBinders = humanBinders.map { it.toHumanBinder() }
 
         val termArrows = arrows.termArrows()
-        val binders = if (termArrows.size > 1) termArrows.dropLast(1).map { Binder(false, underscoreCS, it) } else trueHumanBinders.toBindersWithoutAdditionnalDummies()
+        val binders = if (termArrows.size > 1) termArrows.dropLast(1).mapIndexed { index, type ->   Binder(false, "$id$index", type) } else trueHumanBinders.toBindersWithoutAdditionnalDummies()
         val type = termArrows.last()
         register(M.Computer.Term(id, binders, type))
         this w "(" w TERM s id s "(" w binders.joinToString(" ") { it.mmu() } w ")" s "(" w type.mmu() w "))\n"

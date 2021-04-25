@@ -1,18 +1,26 @@
 package org.mm0.kt
 
-class StringConsumable(private val string: String, private var pos: Int = 0, private val lim: Int = string.length) : Consumable {
+class StringConsumable(private val string: String, private var pos: Int = 0, private val lim: Int = string.length, private val recordComments:Boolean=false) : Consumable {
+    @ExperimentalUnsignedTypes
+    private val builder = CommentsBuilder()
     override fun clone(): StringConsumable = StringConsumable(string, pos, lim)
     override fun isConsumed(): Boolean = pos >= lim
     override fun look(): Char = string[pos]
+    @ExperimentalUnsignedTypes
     override fun consume() {
+        if (recordComments) builder.skip()
         while (pos < lim) {
             val c = look()
             when {
                 c == '-' -> if (!string.startsWith("--", pos)) return else {
                     pos += 2
+                    val start = pos
                     while (pos < lim && look() != '\n') pos++
+                    if (recordComments) builder.add(string.substring(start, pos))
                 }
-                c != ' ' && c != '\n' -> return
+                c == '\n' -> if (recordComments) builder.add(true)
+                c == ' ' -> if (recordComments) builder.add(false)
+                else -> return
             }
             pos++
         }
@@ -30,11 +38,17 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
         while (p < lim) {
             val c = string[p] - '0'
             if (c !in 0..9) break
+            // guard against int overflowing
             if (int > (Int.MAX_VALUE - c) / 10) return null
             int = int * 10 + c
             p++
         }
-        if (p == pos) return null
+        // int number ::= 0 | [1-9][0-9]*
+        when {
+            p == pos -> return null
+            int == 0 && p != pos + 1 -> return null
+            int > 0 && string[pos] == '0' -> return null
+        }
         pos = p
         return int
     }
@@ -99,6 +113,9 @@ class StringConsumable(private val string: String, private var pos: Int = 0, pri
         pos = newPos
         return string.substring(start, newPos - 1)
     }
+
+    @ExperimentalUnsignedTypes
+    override fun comments(): Comments = builder.get()
 
     override fun position(): Int = pos
     override fun charSequences(bounds: List<Pair<Int, Int>>): List<CharSequence> = bounds.map { string.substring(it.first, it.second.coerceAtMost(lim)) }

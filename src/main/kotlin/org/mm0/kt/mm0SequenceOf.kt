@@ -6,7 +6,7 @@ import org.mm0.kt.MM0.*
 import org.mm0.kt.MM0.MM0Assert.*
 
 /** string must only hold ascii  chars */
-fun mm0SequenceOf(string:String, canonizer: Canonizer):Sequence<MM0>  = MM0Sequence(StringConsumable(string), canonizer)
+fun mm0SequenceOf(string: String, canonizer: Canonizer): Sequence<MM0> = MM0Sequence(StringConsumable(string, recordComments = true), canonizer)
 
 /** a flexible and efficient parser for mm0 files  :
  *
@@ -20,7 +20,9 @@ fun mm0SequenceOf(string:String, canonizer: Canonizer):Sequence<MM0>  = MM0Seque
  *  it mostly enhances mathematical syntax for the human mind
  */
 private class MM0Sequence(private val consumable: Consumable, private val canonizer: Canonizer) : Sequence<MM0> {
-    init {skipWhite()}
+    init {
+        skipWhite()
+    }
 
     override fun iterator(): Iterator<MM0> = MM0Iterator()
     private inner class MM0Iterator : Iterator<MM0> {
@@ -28,32 +30,30 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
         override fun next(): MM0 {
             savedDirectivePos = consumable.position()
             /** notations */
-            val mm0 = when {
-                skipIf(COMMENT) -> MM0LineComment(LineComment.MM0(consumable.consumeLine()))
-                skipIf(THEOREM) -> MM0Theorem(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows()).apply{skip(';')}
-                skipIf(DEFINITION) -> MM0Definition(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBefore('=', ';')), formula = if (skipIf('=')) formula() else null).apply{skip(';')}
-                skipIf(TERM) -> MM0Term(id = canonicId(), humanBinders = humanBinders(), termArrows()).apply{skip(';')}
-                skipIf(AXIOM) -> MM0Axiom(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows()).apply{skip(';')}
-                skipIf(PREFIX) -> operator(PREFIX).apply{skip(';')}
-                skipIf(INFIXL) -> operator(INFIXL).apply{skip(';')}
-                skipIf(INFIXR) -> operator(INFIXR).apply{skip(';')}
-                skipIf(NOTATION) -> MM0Notation(Notation(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBeforeSkipping('=')).then('('), constant = formula().then(':'), precedence = (if (skipIf(MAX)) Int.MAX_VALUE else int()).then(')'), notationLiterals = notationLiterals())).apply{skip(';')}
-                skipIf(PURE) -> sort(1).apply{skip(';')}
-                skipIf(STRICT) -> sort(2).apply{skip(';')}
-                skipIf(PROVABLE) -> sort(3).apply{skip(';')}
-                skipIf(FREE) -> sort(4).apply{skip(';')}
-                skipIf(SORT) -> sort(5).apply{skip(';')}
-                skipIf(COERCION) -> MM0Coercion(Coercion(id = canonicId().then(':'), coerced = canonicId().then('>'), coercedInto = canonicId())).apply{skip(';')}
-                skipIf(DELIMITER) -> MM0Delimiters(delimiters()).apply{skip(';')}
-                skipIf(INPUT) -> inout(true).apply{skip(';')}
-                skipIf(OUTPUT) -> inout(false).apply{skip(';')}
+            return when {
+                skipIf(THEOREM) -> MM0Theorem(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows(), comments = comments()).apply { skip(';') }
+                skipIf(DEFINITION) -> MM0Definition(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBefore('=', ';')), formula = if (skipIf('=')) formula() else null, comments = comments()).apply { skip(';') }
+                skipIf(TERM) -> MM0Term(id = canonicId(), humanBinders = humanBinders(), termArrows(), comments = comments()).apply { skip(';') }
+                skipIf(AXIOM) -> MM0Axiom(id = canonicId(), formulaTypeBinders = formulaTypeBinders(), arrows = assertArrows(), comments = comments()).apply { skip(';') }
+                skipIf(PREFIX) -> operator(PREFIX).apply { skip(';') }
+                skipIf(INFIXL) -> operator(INFIXL).apply { skip(';') }
+                skipIf(INFIXR) -> operator(INFIXR).apply { skip(';') }
+                skipIf(NOTATION) -> MM0Notation(Notation(id = canonicId(), humanBinders = humanBinders(), type = canonizer.toImmutable(canonicId(), idsBeforeSkipping('=')).then('('), constant = formula().then(':'), precedence = (if (skipIf(MAX)) Int.MAX_VALUE else int()).then(')'), notationLiterals = notationLiterals()), comments = comments()).apply { skip(';') }
+                skipIf(PURE) -> sort(1).apply { skip(';') }
+                skipIf(STRICT) -> sort(2).apply { skip(';') }
+                skipIf(PROVABLE) -> sort(3).apply { skip(';') }
+                skipIf(FREE) -> sort(4).apply { skip(';') }
+                skipIf(SORT) -> sort(5).apply { skip(';') }
+                skipIf(COERCION) -> MM0Coercion(Coercion(id = canonicId().then(':'), coerced = canonicId().then('>'), coercedInto = canonicId()), comments = comments()).apply { skip(';') }
+                skipIf(DELIMITER) -> MM0Delimiters(delimiters(), comments = comments()).apply { skip(';') }
+                skipIf(INPUT) -> inout(true).apply { skip(';') }
+                skipIf(OUTPUT) -> inout(false).apply { skip(';') }
                 else -> parserError("this should not happen")
             }
-
-            return mm0
         }
     }
 
+    private fun comments() = consumable.comments()
 
 
     private fun idsBefore(charA: Char, charB: Char) = deps.apply {
@@ -120,10 +120,10 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
 
 
     /** mm0 */
-    private fun delimiters():Delimiters {
+    private fun delimiters(): Delimiters {
         val string = formula()
-        if (look() != '$') return Delimiters(listOf(), string.split(' ').distinct().filterNot{it.isEmpty()}, listOf())
-        return Delimiters(string.split(' ').distinct().filterNot{it.isEmpty()}, listOf(), formula().split(' ').distinct().filterNot{it.isEmpty()})
+        if (look() != '$') return Delimiters(listOf(), string.split(' ').distinct().filterNot { it.isEmpty() }, listOf())
+        return Delimiters(string.split(' ').distinct().filterNot { it.isEmpty() }, listOf(), formula().split(' ').distinct().filterNot { it.isEmpty() })
     }
 
     private fun sort(readToken: Int): MM0Sort {
@@ -133,10 +133,10 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
         val isProvable = readToken == 3 || (readToken < 3 && skipIf(PROVABLE))
         val isFree = readToken == 4 || (readToken < 4 && skipIf(FREE))
         if (readToken != 5) skip(SORT)
-        return MM0Sort(Sort(isPure = isPure, isStrict = isStrict, isProvable = isProvable, isFree = isFree, id = canonicId()))
+        return MM0Sort(Sort(isPure = isPure, isStrict = isStrict, isProvable = isProvable, isFree = isFree, id = canonicId()), comments = comments())
     }
 
-    private fun operator(direction: String): MM0Operator = MM0Operator(Operator(id = canonicId().apply { then(':') }, constant = formula().then("prec"), precedence = if (skipIf("max")) Int.MAX_VALUE else int(), operatorType = direction))
+    private fun operator(direction: String): MM0Operator = MM0Operator(Operator(id = canonicId().apply { then(':') }, constant = formula().then("prec"), precedence = if (skipIf("max")) Int.MAX_VALUE else int(), operatorType = direction), comments = comments())
 
     // BEWARE of the mutability of this, should be copied to List
     private val names = mutableListOf<String>()
@@ -223,7 +223,7 @@ private class MM0Sequence(private val consumable: Consumable, private val canoni
 
     private fun inout(isInput: Boolean) = MM0InOut(isInput = isInput, type = canonicId().then(':'), ios = mutableListOf<IO>().apply {
         while (look() != ';') add(if (look() == '$') IO.Formula(formula()) else IO.ID(canonicId()))
-    })
+    }, comments = comments())
 
 
     private var savedDirectivePos: Int = 0

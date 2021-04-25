@@ -7,13 +7,8 @@ class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=nu
     private val contexts = mutableListOf<ContextImpl>()
     override fun current(): Context = contexts.lastOrNull() ?: error("no context built yet")
 
-    private val mutableMM0Comments = mutableListOf<M.Human.LineComment.MM0>()
-    private val mutableMMUComments = mutableListOf<M.Human.LineComment.MMU>()
-
     override fun register(m: M) {
         when (m) {
-            is M.Human.LineComment.MM0 -> mutableMM0Comments.add(m)
-            is M.Human.LineComment.MMU -> mutableMMUComments.add(m)
             is M.Human.Delimiters -> {
                 for (delimiter in m.left) delimiters = delimiters.put(delimiter, Delimiter.Left(delimiter))
                 for (delimiter in m.both) delimiters = delimiters.put(delimiter, Delimiter.Both(delimiter))
@@ -54,9 +49,8 @@ class ContextBuilderImpl(private var assertions: STree<M.Computer.Assertion>?=nu
             is M.Computer.Output -> TODO("I have not thought about those in this context yet")
             is M.Computer.Assertion -> m.addAssertionIfFirst(m.id)
         }
-        contexts.add(ContextImpl(assertions, comp, sorts, human, delimiters, coercions, mutableMM0Comments.toList(), mutableMMUComments.toList()))
-        mutableMM0Comments.clear()
-        mutableMMUComments.clear()
+        contexts.add(ContextImpl(assertions, comp, sorts, human, delimiters, coercions))
+
     }
 
     /** Check that a constant is not replaced later by another for the DynamicParser */

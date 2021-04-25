@@ -56,6 +56,8 @@ interface Consumable {
     /** returns charSequences with bounds=Pair(start, limit) */
     fun charSequences(bounds: List<Pair<Int, Int>>): List<CharSequence>
 
+    fun comments():Comments
+
     companion object {
         const val INT_OVERFLOW_WITH: Int = (Int.MAX_VALUE - 9) / 10
     }

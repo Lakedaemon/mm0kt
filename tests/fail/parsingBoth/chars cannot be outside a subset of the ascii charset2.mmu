@@ -3,4 +3,4 @@
 -- An identifier token matches [0-9a-zA-Z_:]+
 -- Characters ( ) are single character symbol tokens
 -- Anything else is forbidden
-(sort s )
+(sort s  )
