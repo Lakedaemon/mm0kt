@@ -31,15 +31,16 @@ class Canonizer {
     private val typeCanonizer = mutableMapOf<ProxyCharSequenceCharSequences, Type>()
 
     /** thread safe, through the use of ThreadLocal */
+
+private val proxy = ProxyCharSequenceCharSequences("", listOf())
     fun toImmutable(sort: CharSequence, dependencies: Iterable<CharSequence>): Type {
-        val result = typeCanonizer[threadLocalProxy.get().apply { charSequence = sort;iterable = dependencies }]
+        val result = typeCanonizer[proxy.apply { charSequence = sort;iterable = dependencies }]
         if (result != null) return result
         val type = Type(sort = toImmutable(sort), dependencies = dependencies.asSequence().map { toImmutable(it) }.toList())
         typeCanonizer[ProxyCharSequenceCharSequences(type.sort, type.dependencies)] = type
         return type
     }
 
-    private val threadLocalProxy: ThreadLocal<ProxyCharSequenceCharSequences> = ThreadLocal<ProxyCharSequenceCharSequences>().apply { set(ProxyCharSequenceCharSequences("", listOf())) }
 
     private class ProxyCharSequenceCharSequences(var charSequence: CharSequence, var iterable: Iterable<CharSequence>) {
         override fun equals(other: Any?): Boolean {

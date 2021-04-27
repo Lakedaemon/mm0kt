@@ -4,10 +4,11 @@ plugins {
 }
 
 group = "org.mm0.kt"
-version = "1.0"
+version = "0.3"
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 kotlin {
@@ -43,7 +44,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-                implementation("org.junit.jupiter:junit-jupiter-params:5.6.0")
+               // implementation("org.junit.jupiter:junit-jupiter-params:5.6.0")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
             }
         }

@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertFails
 
 
-expect fun string(folder: String, fileName: String): String
+
 expect fun filePathOf(folderPath: String): Sequence<String>
 
 

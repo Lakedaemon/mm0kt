@@ -3,11 +3,10 @@ package org.mm0.kt
 
 import org.mm0.kt.M.Computer.*
 import org.mm0.kt.M.Computer.Assertion.*
-import java.io.Closeable
 
-open class MMUWriter :Closeable{
+open class MMUWriter{
     open fun write(string: String) {}
-    override fun close() {}
+    fun close() {}
 
     fun mmu(sort: Sort) = with(sort) { write("($SORT $id ${if (isPure) " $PURE" else ""}${if (isStrict) " $STRICT" else ""}${if (isProvable) " $PROVABLE" else ""}${if (isFree) " $FREE" else ""})\n") }
     fun mmu(term: Term) = with(term) { write("($TERM $id (${binders.joinToString(" ") { it.mmu() }}) (${type.sort} (${type.dependencies.joinToString(" ")})))\n") }

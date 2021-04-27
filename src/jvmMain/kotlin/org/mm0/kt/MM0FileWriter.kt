@@ -9,7 +9,7 @@ class MM0FileWriter(path:String) : MM0Writer() {
         fW.write(string)
     }
 
-    override fun close() {
+    fun close() {
         fW.close()
     }
 }

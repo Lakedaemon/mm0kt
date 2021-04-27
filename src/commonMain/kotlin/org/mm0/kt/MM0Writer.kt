@@ -2,11 +2,10 @@ package org.mm0.kt
 
 import org.mm0.kt.M.Computer.*
 import org.mm0.kt.M.Human.*
-import java.io.Closeable
 
-open class MM0Writer:Closeable {
+open class MM0Writer {
     open fun write(string: String) {}
-    override fun close() {}
+    fun close() {}
 
     fun add(delimiters: Delimiters) = with(delimiters) { write("$DELIMITER $ ${(left + both).joinToString(" ")} $${if (right.isEmpty()) "" else right.joinToString(" ", prefix = " $ ", postfix = " $ ")};\n") }
     fun add(sort: Sort) = with(sort) { write("${if (isPure) "$PURE " else ""}${if (isStrict) "$STRICT " else ""}${if (isProvable) "$PROVABLE " else ""}${if (isFree) "$FREE " else ""}$SORT $id;\n") }
