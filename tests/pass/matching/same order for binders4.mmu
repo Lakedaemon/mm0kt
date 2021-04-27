@@ -1,3 +1,0 @@
-(sort s )
-(sort t )
-(term a ((a0 s ()) (a1 t ())) (s ()))

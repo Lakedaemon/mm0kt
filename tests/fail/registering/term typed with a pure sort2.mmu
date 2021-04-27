@@ -1,3 +1,0 @@
-(sort s free )
-(term f ((x s)) (s ()))
-(def y () (s ()) ((x s)) (f x))

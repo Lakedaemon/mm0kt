@@ -1,3 +1,0 @@
-(sort s )
-(term a () (s ()))
-(axiom b ((x s ())) () a)

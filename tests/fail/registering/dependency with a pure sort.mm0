@@ -1,2 +1,0 @@
-pure sort s;
-term a (x:s):s x;

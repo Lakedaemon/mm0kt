@@ -1,36 +1,59 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm") version "1.4.31"//"1.5.0-M2"
-    application
+    kotlin("multiplatform") version "1.5.0-RC"
+    id("maven-publish")
 }
 
 group = "org.mm0.kt"
-version = "0.1"
+version = "1.0"
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    val kotlin_version = "1.4.31"//"1.5.0-M2"
-    val spek_version="2.0.15"//"2.0.16"//
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
-    implementation("org.jetbrains.kotlin:kotlin-test")
-    // some version of Kotlin
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+kotlin {
+    jvm {
+        compilations.all { kotlinOptions.jvmTarget = "1.8" }
+        testRuns["test"].executionTask.configure { useJUnitPlatform() }
+    }
+    js(LEGACY) {
+        browser {
+            commonWebpackConfig { cssSupport.enabled = true }
+        }
+    }
+    val hostOs = System.getProperty("os.name")
+    val isMingwX64 = hostOs.startsWith("Windows")
+    val nativeTarget = when {
+        hostOs == "Mac OS X" -> macosX64("native")
+        hostOs == "Linux" -> linuxX64("native")
+        isMingwX64 -> mingwX64("native")
+        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    }
 
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spek_version")
-    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:$spek_version")
-
-    // spek requires kotlin-reflect, can be omitted if already in the classpath
-    testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-application {
-    mainClassName = "MainKt"
+    
+    sourceSets {
+        val commonMain by getting
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
+            }
+        }
+        val jvmMain by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit5"))
+                implementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+                implementation("org.junit.jupiter:junit-jupiter-params:5.6.0")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+            }
+        }
+        val jsMain by getting
+        val jsTest by getting {
+            dependencies {
+                implementation(kotlin("test-js"))
+            }
+        }
+        val nativeMain by getting
+        val nativeTest by getting
+    }
 }
