@@ -5,7 +5,7 @@ import org.mm0.kt.M.Human.*
 
 open class MM0Writer {
     open fun write(string: String) {}
-    fun close() {}
+    open fun close() {}
 
     fun add(delimiters: Delimiters) = with(delimiters) { write("$DELIMITER $ ${(left + both).joinToString(" ")} $${if (right.isEmpty()) "" else right.joinToString(" ", prefix = " $ ", postfix = " $ ")};\n") }
     fun add(sort: Sort) = with(sort) { write("${if (isPure) "$PURE " else ""}${if (isStrict) "$STRICT " else ""}${if (isProvable) "$PROVABLE " else ""}${if (isFree) "$FREE " else ""}$SORT $id;\n") }

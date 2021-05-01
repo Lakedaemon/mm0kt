@@ -6,7 +6,7 @@ import org.mm0.kt.M.Computer.Assertion.*
 
 open class MMUWriter{
     open fun write(string: String) {}
-    fun close() {}
+    open fun close() {}
 
     fun mmu(sort: Sort) = with(sort) { write("($SORT $id ${if (isPure) " $PURE" else ""}${if (isStrict) " $STRICT" else ""}${if (isProvable) " $PROVABLE" else ""}${if (isFree) " $FREE" else ""})\n") }
     fun mmu(term: Term) = with(term) { write("($TERM $id (${binders.joinToString(" ") { it.mmu() }}) (${type.sort} (${type.dependencies.joinToString(" ")})))\n") }

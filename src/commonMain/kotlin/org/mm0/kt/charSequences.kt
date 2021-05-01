@@ -13,7 +13,7 @@ fun CharSequence.charsHashCode(): Int {
 }
 
 internal fun compare(a: CharSequence, b: CharSequence): Int {
-    val min = a.length.coerceAtLeast(b.length)
+    val min = a.length.coerceAtMost(b.length)
     for (k in 0 until min) {
         val comp = a[k].compareTo(b[k])
         if (comp != 0) return comp
